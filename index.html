@@ -569,16 +569,33 @@ function pintarLista() {
   }).join('') : '<div class="vacio">No hay estaciones con ese filtro.</div>';
 }
 
+/* App (App Store: si ya esta instalada muestra "Abrir") y web de cada red */
+var APP_ST = 'https://apps.apple.com/co/app/id';
+var APPS = [
+  [/tesla/i, 'Tesla', '582007913', 'https://www.tesla.com/es_co/findus'],
+  [/mubon/i, 'MubOn', '6468587011', 'https://mubon.co/'],
+  [/terpel|voltex/i, 'Terpel (Voltex)', '1450531042', 'https://www.terpel.com/voltex'],
+  [/voltop/i, 'Voltop', '6759729784', 'https://voltop.co/'],
+  [/velttio/i, 'Velttio', '6746524660', 'https://www.velttio.com/'],
+  [/erco/i, 'ENRG (Erco)', '1483668731', 'https://erco.energy/'],
+  [/ergenia/i, 'Ergenia Power-Up', '6756280632', 'https://ergenia.com/'],
+  [/voltrelli/i, 'Voltrelli', '6443899578', 'https://voltrelli.com/'],
+  [/evinka/i, 'Evinka Connect', '6743364948', 'https://evinka.tech/'],
+  [/enel|evx/i, 'Enel On Your Way', '1377291789', 'https://www.enelxway.com/co/es'],
+  [/epm/i, 'App EPM', '1595162371', 'https://www.epm.com.co/clientesyusuarios/energia/hogar/movilidad-electrica/'],
+  [/celsia/i, 'PlugShare (Celsia)', '421788217', 'https://www.celsia.com/es/movilidad-electrica/']
+];
+function appDe(e) {
+  var t = e.operador + ' ' + e.nombre, a = APPS.filter(function (x) { return x[0].test(t); })[0];
+  if (a) return {n: a[1], ios: APP_ST + a[2], web: a[3]};
+  return {n: 'PlugShare', ios: APP_ST + '421788217', web: 'https://www.plugshare.com/'};
+}
 function abrir(id) {
   var e = S.est.filter(function (x) { return x.id === id; })[0];
   if (!e) return;
   var st = estado(e), tf = tarifaDe(e);
   var nav = e.lat + ',' + e.lon;
-  var appOp = e.fuente === 'VIVO' ? 'https://electrolineras.co/' : e.fuente === 'EPM' ? 'https://www.epm.com.co/clientesyusuarios/energia/hogar/movilidad-electrica/'
-    : /terpel|voltex/i.test(e.operador) ? 'https://www.terpel.com/voltex'
-    : /celsia/i.test(e.operador) ? 'https://www.celsia.com/es/movilidad-electrica/'
-    : /enel/i.test(e.operador) ? 'https://www.enelxway.com/co/es'
-    : /tesla/i.test(e.operador) ? 'https://www.tesla.com/es_co/findus' : '';
+  var app = appDe(e);
   var filas = [
     ['Estado', '<span class="badge" style="background:' + st.c + '">' + esc(st.txt) + '</span>'],
     ['Tu Model Y', '<b style="color:' + COMPAT[compat(e)][0] + '">' + COMPAT[compat(e)][1] + '</b>'],
@@ -603,7 +620,8 @@ function abrir(id) {
     '<div class="btns">' +
     '<a class="btn pri" href="https://www.google.com/maps/dir/?api=1&destination=' + nav + '" target="_blank" rel="noopener">🧭 Cómo llegar</a>' +
     '<a class="btn" href="https://waze.com/ul?ll=' + nav + '&navigate=yes" target="_blank" rel="noopener">🚗 Waze</a>' +
-    (appOp ? '<a class="btn" style="grid-column:1/-1" href="' + appOp + '" target="_blank" rel="noopener">Ver ocupación en app del operador</a>' : '') +
+    '<a class="btn pri" style="grid-column:1/-1;background:#16a34a" href="' + app.ios + '" target="_blank" rel="noopener">📲 Reservar / cargar en app ' + esc(app.n) + '</a>' +
+    (app.web ? '<a class="btn" style="grid-column:1/-1" href="' + app.web + '" target="_blank" rel="noopener">🌐 Página web de ' + esc(app.n) + '</a>' : '') +
     '</div>' +
     (e.fuente === 'LISTA' || e.fuente === 'OSM' ? '<p class="nota">Esta red no publica su ocupación de forma abierta; confirma disponibilidad en la app del operador.</p>' : '');
   document.getElementById('hoja').classList.add('on');
