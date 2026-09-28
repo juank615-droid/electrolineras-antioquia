@@ -1,5 +1,5 @@
 // Red primero para todo (datos siempre frescos); cache solo como respaldo sin senal.
-const CACHE = 'electrolineras-v5';
+const CACHE = 'electrolineras-v6';
 const BASE = ['./', 'index.html', 'manifest.json', 'precios.json', 'estaciones_epm.json', 'vivo.json', 'otras_redes.json', 'osm.json', 'icon-180.png', 'icon-192.png', 'icon-512.png',
   'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css',
   'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js'];

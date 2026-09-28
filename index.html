@@ -620,7 +620,7 @@ function abrir(id) {
     '<div class="btns">' +
     '<a class="btn pri" href="https://www.google.com/maps/dir/?api=1&destination=' + nav + '" target="_blank" rel="noopener">🧭 Cómo llegar</a>' +
     '<a class="btn" href="https://waze.com/ul?ll=' + nav + '&navigate=yes" target="_blank" rel="noopener">🚗 Waze</a>' +
-    '<a class="btn pri" style="grid-column:1/-1;background:#16a34a" href="' + app.ios + '" target="_blank" rel="noopener">📲 Reservar / cargar en app ' + esc(app.n) + '</a>' +
+    '<a class="btn pri" style="grid-column:1/-1;background:#16a34a" href="' + app.ios + '" target="_blank" rel="noopener">📲 Reservar / cargar · app ' + esc(app.n.replace(/^App /, '')) + '</a>' +
     (app.web ? '<a class="btn" style="grid-column:1/-1" href="' + app.web + '" target="_blank" rel="noopener">🌐 Página web de ' + esc(app.n) + '</a>' : '') +
     '</div>' +
     (e.fuente === 'LISTA' || e.fuente === 'OSM' ? '<p class="nota">Esta red no publica su ocupación de forma abierta; confirma disponibilidad en la app del operador.</p>' : '');
