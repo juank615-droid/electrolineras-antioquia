@@ -127,7 +127,7 @@ th{color:var(--mute);font-weight:500}
     <div class="kpi"><b id="k-est">–</b><span>Estaciones</span></div>
     <div class="kpi"><b id="k-ok">–</b><span>Disponibles</span></div>
     <div class="kpi"><b id="k-con">–</b><span>Cargadores</span></div>
-    <div class="kpi"><b id="k-precio">–</b><span>kWh EPM</span></div>
+    <div class="kpi"><b id="k-precio">–</b><span id="k-precio-t">kWh desde</span></div>
   </div>
 </header>
 
@@ -154,31 +154,34 @@ th{color:var(--mute);font-weight:500}
 
   <section class="vista" id="v-precios">
     <div class="card" style="padding:10px 14px">
-      <div style="font-size:13px;color:var(--mute)">Precio vigente hoy · <b id="p-hoy" style="color:var(--ink)"></b></div>
-      <div style="font-size:12px;color:var(--mute);margin-top:2px">Tarifa pública EPM (URV) · <span id="p-mes"></span></div>
+      <div style="font-size:13px;color:var(--mute)">Precio del kWh por comercializador · <b id="p-hoy" style="color:var(--ink)"></b></div>
+      <div style="font-size:12px;color:var(--mute);margin-top:2px">Cada estación cobra la tarifa de su propio comercializador.</div>
     </div>
-    <div class="precios">
-      <div class="precio"><span>🐢 Carga lenta / semirrápida</span><b id="p-lenta">–</b><em id="p-lenta-d"></em></div>
-      <div class="precio"><span>⚡ Carga rápida (DC)</span><b id="p-rapida">–</b><em id="p-rapida-d"></em></div>
-    </div>
-
-    <h4>Precio hoy en otras redes (en vivo)</h4>
-    <div class="card"><table id="tabla-redes"></table><p class="nota" style="margin-top:6px">Precio que publica cada operador en su app, leído automáticamente cada 5 minutos.</p></div>
+    <div class="card"><table id="tabla-redes"></table>
+      <p class="nota" style="margin-top:6px">📡 En vivo: precio que publica el comercializador en su app, leído cada 5 min. 📅 Tarifa mensual: publicada por el comercializador. Si hay rango, varía según la estación.</p></div>
 
     <h4>¿Cuánto me cuesta cargar?</h4>
     <div class="card calc">
+      <label>Comercializador</label>
+      <select id="c-op" onchange="calcular()" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:15px"></select>
       <label>Batería del carro <b id="c-bat-v"></b></label>
       <input type="range" id="c-bat" min="20" max="120" step="1" value="60" oninput="calcular()">
       <label>Cargar desde <b id="c-de-v"></b> hasta <b id="c-a-v"></b></label>
       <input type="range" id="c-de" min="0" max="95" step="5" value="20" oninput="calcular()">
       <input type="range" id="c-a" min="5" max="100" step="5" value="80" oninput="calcular()">
       <div class="res">
-        <div><b id="c-lenta">–</b><span>lenta · <span id="c-kwh"></span></span></div>
-        <div><b id="c-rapida">–</b><span>rápida</span></div>
+        <div><b id="c-kwh">–</b><span>energía a cargar</span></div>
+        <div><b id="c-costo">–</b><span id="c-costo-t">costo aprox.</span></div>
       </div>
     </div>
 
-    <h4>Evolución (últimos 24 meses)</h4>
+    <h4>Comercializador EPM · tarifa URV</h4>
+    <div class="card" style="padding:10px 14px"><div style="font-size:12px;color:var(--mute)">Aplica solo en estaciones EPM · <span id="p-mes"></span></div></div>
+    <div class="precios">
+      <div class="precio"><span>🐢 EPM lenta / semirrápida</span><b id="p-lenta">–</b><em id="p-lenta-d"></em></div>
+      <div class="precio"><span>⚡ EPM rápida (DC)</span><b id="p-rapida">–</b><em id="p-rapida-d"></em></div>
+    </div>
+    <h4>Evolución tarifa EPM (24 meses)</h4>
     <div class="card">
       <svg id="graf" viewBox="0 0 340 170" style="width:100%;height:auto;display:block"></svg>
       <div class="leyenda" style="margin-top:6px">
@@ -186,7 +189,7 @@ th{color:var(--mute);font-weight:500}
       </div>
     </div>
 
-    <h4>Histórico mensual</h4>
+    <h4>Histórico mensual EPM</h4>
     <div class="card"><table id="tabla"></table></div>
     <p class="nota" id="p-fuente"></p>
   </section>
@@ -199,7 +202,7 @@ th{color:var(--mute);font-weight:500}
         <li><b>Ocupación en vivo por cargador</b> (Terpel Voltex, Mubon, Voltop y demás redes conectadas): se copia cada 5 minutos del agregador electrolineras.co, que sincroniza con las apps de los operadores. Verás cuántos cargadores están libres, en uso o fuera de servicio.</li>
         <li><b>Estaciones EPM:</b> se leen del mapa oficial del Grupo EPM (estado operativo de la estación).</li>
         <li><b>Celsia, centros comerciales, concesionarios:</b> listado verificado + OpenStreetMap; ubicación y conectores, sin ocupación en vivo.</li>
-        <li><b>Precio del kWh:</b> un proceso automático revisa todos los días a las 6:15 a. m. la tarifa publicada por EPM. EPM fija la tarifa por mes, así que el valor cambia cuando EPM publica el nuevo mes.</li>
+        <li><b>Precio del kWh:</b> cada estación muestra la tarifa de <b>su propio comercializador</b>. Terpel Voltex, Mubon, Voltop y demás redes en vivo se leen cada 5 minutos de lo que publican en sus apps; la tarifa del comercializador EPM (solo para estaciones EPM) se revisa todos los días a las 6:15 a. m. y cambia cuando EPM publica el nuevo mes. Celsia y otras redes que no publican tarifa aparecen como "No publica".</li>
         <li>Sin señal, la app muestra los últimos datos guardados.</li>
       </ul>
       <h4>Sobre la ocupación</h4>
@@ -434,7 +437,9 @@ function pintarKPIs() {
   document.getElementById('k-est').textContent = S.est.length || '–';
   document.getElementById('k-ok').textContent = S.est.length ? ok : '–';
   document.getElementById('k-con').textContent = con || '–';
-  document.getElementById('k-precio').textContent = S.precios ? cop(ultimoMes().v.rapida) : '–';
+  var t = tarifasPorOperador().filter(function (x) { return x.min > 0; }).sort(function (a, b) { return a.min - b.min; })[0];
+  document.getElementById('k-precio').textContent = t ? cop(t.min) : '–';
+  document.getElementById('k-precio-t').textContent = t ? 'kWh · ' + t.op : 'kWh desde';
 }
 
 function iniciarMapa() {
@@ -507,7 +512,7 @@ function pintarLista() {
       '<div class="tags">' + (e.tipo ? '<span class="tag">' + esc(e.tipo) + '</span>' : '') +
       e.conect.map(function (c) { return '<span class="tag">' + c + '</span>'; }).join('') + '</div></div>' +
       '<div class="der">' + (S.pos ? '<b>' + e.km.toFixed(1).replace('.', ',') + ' km</b>' : '') +
-      (tf ? '<b>' + cop(tf) + '</b><span>/kWh</span>' : '') + '</div></div>';
+      (tf ? '<b>' + cop(tf) + '</b><span>/kWh · ' + esc(comercializador(e)) + '</span>' : '') + '</div></div>';
   }).join('') : '<div class="vacio">No hay estaciones con ese filtro.</div>';
 }
 
@@ -527,7 +532,7 @@ function abrir(id) {
     e.cargadores ? ['Cargadores', e.cargadores] : null,
     ['Tipos de conector', e.conect.length ? e.conect.join(', ') : 'No informado'],
     e.pot ? ['Potencia', esc(e.pot)] : null,
-    tf ? ['Precio kWh hoy', '<b>' + cop1(tf) + '</b>' + (e.fuente === 'EPM' ? ' <small>(tarifa EPM)</small>' : '')] : null,
+    ['Precio kWh hoy', tf ? '<b>' + cop1(tf) + '</b><br><small>Comercializador: ' + esc(comercializador(e)) + (e.fuente === 'VIVO' ? ' · en vivo' : e.fuente === 'EPM' ? ' · tarifa del mes' : '') + '</small>' : '<small>' + esc(comercializador(e)) + ' no publica tarifa</small>'],
     e.horario ? ['Horario', esc(e.horario)] : null,
     e.pago ? ['Medio de pago', esc(e.pago)] : null,
     ['Fuente', {EPM: 'Mapa oficial Grupo EPM', VIVO: 'Operador vía electrolineras.co (cada 5 min)', LISTA: 'Listado verificado (sin ocupación en vivo)', OSM: 'OpenStreetMap (sin ocupación en vivo)'}[e.fuente]]
@@ -572,6 +577,7 @@ function variacion(id, a, b) {
 function pintarPrecios() {
   var hoy = new Date();
   document.getElementById('p-hoy').textContent = hoy.toLocaleDateString('es-CO', {weekday: 'long', day: 'numeric', month: 'long'});
+  tablaRedes();
   if (!S.precios) return;
   var u = ultimoMes();
   document.getElementById('p-mes').textContent = 'vigente desde ' + nomMes(u.k);
@@ -587,19 +593,46 @@ function pintarPrecios() {
   document.getElementById('p-fuente').innerHTML = 'Fuente: ' + esc(S.precios.fuente) + '. Valores en COP por kWh. Última verificación automática: ' +
     c.toLocaleString('es-CO', {day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit'}) +
     '. <a href="' + esc(S.precios.url) + '" target="_blank" rel="noopener" style="color:var(--acc)">Ver PDF de EPM</a>';
-  grafica(); calcular(); tablaRedes();
+  grafica();
+}
+function comercializador(e) { return e.fuente === 'EPM' ? 'EPM' : e.operador.replace(/ \(privado\)/, ''); }
+function tarifasPorOperador() {
+  var g = {}, sinTarifa = {};
+  S.est.forEach(function (e) {
+    var op = comercializador(e);
+    if (e.fuente === 'OSM' || /^(concesionario|universidad|operador sin identificar)$/i.test(op)) return;
+    var rap = e.tipo === 'Rápida';
+    var pr = tarifaDe(e);
+    if (!pr) { sinTarifa[op] = 1; return; }
+    var k = op + '|' + (rap ? 'Rápida DC' : 'Lenta / AC');
+    if (!g[k]) g[k] = {op: op, carga: rap ? 'Rápida DC' : 'Lenta / AC', v: [], vivo: false, n: 0};
+    g[k].v.push(pr); g[k].n++;
+    if (e.fuente === 'VIVO') g[k].vivo = true;
+  });
+  var out = Object.keys(g).map(function (k) {
+    var x = g[k]; x.min = Math.min.apply(null, x.v); x.max = Math.max.apply(null, x.v);
+    x.origen = x.vivo ? '📡 En vivo' : x.op === 'EPM' ? '📅 Tarifa mensual' : '📋 Última publicada';
+    return x;
+  });
+  Object.keys(sinTarifa).forEach(function (op) {
+    if (!out.some(function (x) { return x.op === op; })) out.push({op: op, carga: '—', min: 0, max: 0, origen: 'No publica tarifa', n: 0});
+  });
+  return out.sort(function (a, b) { return (b.min > 0) - (a.min > 0) || a.op.localeCompare(b.op) || a.carga.localeCompare(b.carga); });
 }
 function tablaRedes() {
-  var g = {};
-  S.est.forEach(function (e) {
-    if (e.fuente !== 'VIVO' || !e.precio) return;
-    var k = e.operador + (e.tipo === 'Rápida' ? ' · rápida DC' : ' · AC');
-    (g[k] = g[k] || []).push(e.precio);
-  });
-  var ks = Object.keys(g).sort();
-  document.getElementById('tabla-redes').innerHTML = ks.length ? '<tr><th>Red</th><th>Mín</th><th>Máx</th></tr>' + ks.map(function (k) {
-    return '<tr><td>' + esc(k) + '</td><td>' + cop(Math.min.apply(null, g[k])) + '</td><td>' + cop(Math.max.apply(null, g[k])) + '</td></tr>';
+  var t = tarifasPorOperador();
+  document.getElementById('tabla-redes').innerHTML = t.length ? '<tr><th>Comercializador</th><th>Carga</th><th>$/kWh hoy</th></tr>' + t.map(function (x) {
+    var pr = !x.min ? '<span style="color:var(--mute)">No publica</span>' : x.min === x.max ? cop(x.min) : cop(x.min) + '–' + cop(x.max);
+    return '<tr><td><b>' + esc(x.op) + '</b><br><small style="color:var(--mute)">' + x.origen + '</small></td><td>' + x.carga + '</td><td>' + pr + '</td></tr>';
   }).join('') : '<tr><td>Cargando…</td></tr>';
+  var sel = document.getElementById('c-op'), prev = sel.value;
+  var ops = t.filter(function (x) { return x.min > 0; });
+  sel.innerHTML = ops.map(function (x, i) {
+    return '<option value="' + i + '">' + esc(x.op) + ' · ' + x.carga + ' · ' + cop(x.max) + '/kWh</option>';
+  }).join('');
+  S.calcOps = ops;
+  if (prev && prev < ops.length) sel.value = prev;
+  calcular();
 }
 function grafica() {
   var h = S.precios.historico, ks = Object.keys(h).sort().slice(-24);
@@ -634,10 +667,10 @@ function calcular() {
   document.getElementById('c-a-v').textContent = a + '%';
   var kwh = bat * (a - de) / 100;
   document.getElementById('c-kwh').textContent = kwh.toFixed(1).replace('.', ',') + ' kWh';
-  if (!S.precios) return;
-  var u = ultimoMes().v;
-  document.getElementById('c-lenta').textContent = cop(kwh * u.lenta);
-  document.getElementById('c-rapida').textContent = cop(kwh * u.rapida);
+  var o = S.calcOps && S.calcOps[+document.getElementById('c-op').value || 0];
+  if (!o) return;
+  document.getElementById('c-costo').textContent = cop(kwh * o.max);
+  document.getElementById('c-costo-t').textContent = 'costo con ' + o.op;
 }
 
 /* ---------- navegacion ---------- */
