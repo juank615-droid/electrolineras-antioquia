@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Electrolineras Antioquia</title>
+<meta name="description" content="Estaciones de carga para vehículos eléctricos en Medellín y el Valle de Aburrá: estado, conectores y precio del kWh.">
+<meta name="theme-color" content="#0b1f33">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Electrolineras">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root{
+  --bg:#f3f6f9;--card:#ffffff;--ink:#0f1c2b;--mute:#5d6b7a;--line:#e1e7ee;
+  --head:#0b1f33;--headink:#ffffff;--acc:#16a34a;--acc2:#f59e0b;
+  --ok:#16a34a;--warn:#d97706;--off:#dc2626;--prox:#0891b2;--ocup:#7c3aed;--nd:#8a97a6;
+  --chip:#eef2f6;--shadow:0 1px 3px rgba(15,28,43,.08),0 4px 14px rgba(15,28,43,.06);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#08121d;--card:#112233;--ink:#e8eef5;--mute:#93a3b5;--line:#1f3347;
+  --head:#061321;--chip:#1a2d42;--shadow:0 1px 3px rgba(0,0,0,.4);
+}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;font-size:15px}
+body{display:flex;flex-direction:column;overflow:hidden}
+header{background:var(--head);color:var(--headink);padding:calc(env(safe-area-inset-top) + 10px) 16px 10px}
+.top{display:flex;align-items:center;gap:10px}
+.logo{width:34px;height:34px;border-radius:9px;background:var(--acc);display:grid;place-items:center;font-size:19px;flex:none}
+.top h1{font-size:18px;margin:0;line-height:1.1}
+.top small{display:block;font-size:12px;color:#9fb3c8;font-weight:400;margin-top:2px}
+.top button{margin-left:auto;background:#17324d;border:0;color:#fff;border-radius:10px;padding:8px 10px;font-size:15px}
+.top button.spin span{display:inline-block;animation:gira 1s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+.kpi{background:#12304b;border-radius:10px;padding:7px 6px;text-align:center}
+.kpi b{display:block;font-size:17px;font-variant-numeric:tabular-nums}
+.kpi span{font-size:10.5px;color:#9fb3c8}
+main{flex:1;position:relative;overflow:hidden}
+.vista{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;padding:12px 16px 20px}
+.vista.on{display:block}
+#v-mapa{padding:0}
+#mapa{position:absolute;inset:0}
+nav{display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;background:none;border:0;padding:8px 0 7px;color:var(--mute);font-size:11px;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button i{font-style:normal;font-size:20px;filter:grayscale(1);opacity:.7}
+nav button.on{color:var(--acc);font-weight:600}
+nav button.on i{filter:none;opacity:1}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:8px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:13px}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.buscar{display:flex;gap:8px;margin-bottom:10px}
+.buscar input{flex:1;min-width:0;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:10px 12px;font-size:15px}
+.buscar button{border:0;border-radius:10px;background:var(--head);color:#fff;padding:0 12px;font-size:13px;white-space:nowrap}
+.card{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:12px 14px;margin-bottom:10px}
+.est{display:flex;gap:12px;align-items:flex-start}
+.dot{width:12px;height:12px;border-radius:50%;flex:none;margin-top:5px}
+.est h3{margin:0;font-size:15.5px}
+.est p{margin:3px 0 0;color:var(--mute);font-size:13px}
+.est .der{margin-left:auto;text-align:right;flex:none}
+.est .der b{display:block;font-size:14px;font-variant-numeric:tabular-nums}
+.est .der span{font-size:11px;color:var(--mute)}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.tag{background:var(--chip);border-radius:6px;padding:2px 7px;font-size:11.5px}
+.badge{display:inline-block;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:600;color:#fff}
+.vacio{text-align:center;color:var(--mute);padding:30px 10px}
+/* hoja de detalle */
+#velo{position:fixed;inset:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .2s;z-index:1000}
+#velo.on{opacity:1;pointer-events:auto}
+#hoja{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-radius:18px 18px 0 0;z-index:1001;
+  max-height:82vh;overflow-y:auto;transform:translateY(105%);transition:transform .25s;padding:8px 18px calc(env(safe-area-inset-bottom) + 18px)}
+#hoja.on{transform:none}
+.asa{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 10px}
+#hoja h2{margin:0 0 2px;font-size:19px}
+#hoja .sub{color:var(--mute);font-size:13px;margin-bottom:10px}
+#hoja img{width:100%;max-height:170px;object-fit:cover;border-radius:12px;margin:6px 0 10px;background:var(--chip)}
+.fila{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.fila>span:first-child{color:var(--mute)}
+.fila>span:last-child{text-align:right}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.btn{display:block;text-align:center;text-decoration:none;border-radius:12px;padding:12px;font-weight:600;font-size:14px;background:var(--chip);color:var(--ink);border:0}
+.btn.pri{background:var(--acc);color:#fff}
+.nota{font-size:12px;color:var(--mute);line-height:1.45;margin-top:10px}
+/* precios */
+.precios{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.precio{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:14px}
+.precio span{font-size:12px;color:var(--mute)}
+.precio b{display:block;font-size:24px;margin:4px 0 2px;font-variant-numeric:tabular-nums}
+.precio em{font-style:normal;font-size:12px;font-weight:600}
+.sube{color:var(--off)}.baja{color:var(--ok)}
+h4{margin:16px 0 8px;font-size:14px}
+.calc label{display:flex;justify-content:space-between;font-size:13px;color:var(--mute);margin:10px 0 4px}
+.calc input[type=range]{width:100%;accent-color:var(--acc)}
+.res{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.res div{background:var(--chip);border-radius:10px;padding:10px;text-align:center}
+.res b{display:block;font-size:17px;font-variant-numeric:tabular-nums}
+.res span{font-size:11.5px;color:var(--mute)}
+table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+td,th{padding:7px 4px;border-bottom:1px solid var(--line);text-align:right}
+td:first-child,th:first-child{text-align:left}
+th{color:var(--mute);font-weight:500}
+.leyenda{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--mute)}
+.leyenda i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}
+#ley-mapa{position:absolute;left:10px;bottom:10px;z-index:500;background:var(--card);border-radius:10px;padding:7px 10px;box-shadow:var(--shadow)}
+#toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 12px);transform:translate(-50%,-150%);background:#0f1c2b;color:#fff;
+  padding:9px 14px;border-radius:10px;font-size:13px;z-index:2000;transition:transform .25s;max-width:90vw}
+#toast.on{transform:translate(-50%,0)}
+.info p,.info li{font-size:14px;line-height:1.5}
+.info ul{padding-left:18px}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div class="logo">⚡</div>
+    <h1>Electrolineras Antioquia<small id="actualizado">Cargando…</small></h1>
+    <button id="btn-ref" onclick="refrescar(true)" aria-label="Actualizar"><span>⟳</span></button>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><b id="k-est">–</b><span>Estaciones</span></div>
+    <div class="kpi"><b id="k-ok">–</b><span>Disponibles</span></div>
+    <div class="kpi"><b id="k-con">–</b><span>Cargadores</span></div>
+    <div class="kpi"><b id="k-precio">–</b><span>kWh EPM</span></div>
+  </div>
+</header>
+
+<main>
+  <section class="vista on" id="v-mapa">
+    <div id="mapa"></div>
+    <div id="ley-mapa" class="leyenda">
+      <span><i style="background:var(--ok)"></i>Operativa</span>
+      <span><i style="background:var(--ocup)"></i>Ocupada</span>
+      <span><i style="background:var(--warn)"></i>Parcial</span>
+      <span><i style="background:var(--off)"></i>Sin servicio</span>
+      <span><i style="background:var(--nd)"></i>Sin dato</span>
+    </div>
+  </section>
+
+  <section class="vista" id="v-lista">
+    <div class="buscar">
+      <input id="q" type="search" placeholder="Buscar estación, barrio o municipio" oninput="pintarLista()">
+      <button onclick="cercaDeMi()">📍 Cerca</button>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div id="lista"></div>
+  </section>
+
+  <section class="vista" id="v-precios">
+    <div class="card" style="padding:10px 14px">
+      <div style="font-size:13px;color:var(--mute)">Precio vigente hoy · <b id="p-hoy" style="color:var(--ink)"></b></div>
+      <div style="font-size:12px;color:var(--mute);margin-top:2px">Tarifa pública EPM (URV) · <span id="p-mes"></span></div>
+    </div>
+    <div class="precios">
+      <div class="precio"><span>🐢 Carga lenta / semirrápida</span><b id="p-lenta">–</b><em id="p-lenta-d"></em></div>
+      <div class="precio"><span>⚡ Carga rápida (DC)</span><b id="p-rapida">–</b><em id="p-rapida-d"></em></div>
+    </div>
+
+    <h4>Precio hoy en otras redes (en vivo)</h4>
+    <div class="card"><table id="tabla-redes"></table><p class="nota" style="margin-top:6px">Precio que publica cada operador en su app, leído automáticamente cada 5 minutos.</p></div>
+
+    <h4>¿Cuánto me cuesta cargar?</h4>
+    <div class="card calc">
+      <label>Batería del carro <b id="c-bat-v"></b></label>
+      <input type="range" id="c-bat" min="20" max="120" step="1" value="60" oninput="calcular()">
+      <label>Cargar desde <b id="c-de-v"></b> hasta <b id="c-a-v"></b></label>
+      <input type="range" id="c-de" min="0" max="95" step="5" value="20" oninput="calcular()">
+      <input type="range" id="c-a" min="5" max="100" step="5" value="80" oninput="calcular()">
+      <div class="res">
+        <div><b id="c-lenta">–</b><span>lenta · <span id="c-kwh"></span></span></div>
+        <div><b id="c-rapida">–</b><span>rápida</span></div>
+      </div>
+    </div>
+
+    <h4>Evolución (últimos 24 meses)</h4>
+    <div class="card">
+      <svg id="graf" viewBox="0 0 340 170" style="width:100%;height:auto;display:block"></svg>
+      <div class="leyenda" style="margin-top:6px">
+        <span><i style="background:var(--acc2)"></i>Rápida</span><span><i style="background:var(--acc)"></i>Lenta</span>
+      </div>
+    </div>
+
+    <h4>Histórico mensual</h4>
+    <div class="card"><table id="tabla"></table></div>
+    <p class="nota" id="p-fuente"></p>
+  </section>
+
+  <section class="vista info" id="v-info">
+    <div class="card">
+      <h4 style="margin-top:4px">Cómo se actualiza</h4>
+      <ul>
+        <li><b>Cobertura:</b> Medellín y todos los municipios a 60 km a la redonda (Valle de Aburrá, Oriente, Occidente y Suroeste cercano).</li>
+        <li><b>Ocupación en vivo por cargador</b> (Terpel Voltex, Mubon, Voltop y demás redes conectadas): se copia cada 5 minutos del agregador electrolineras.co, que sincroniza con las apps de los operadores. Verás cuántos cargadores están libres, en uso o fuera de servicio.</li>
+        <li><b>Estaciones EPM:</b> se leen del mapa oficial del Grupo EPM (estado operativo de la estación).</li>
+        <li><b>Celsia, centros comerciales, concesionarios:</b> listado verificado + OpenStreetMap; ubicación y conectores, sin ocupación en vivo.</li>
+        <li><b>Precio del kWh:</b> un proceso automático revisa todos los días a las 6:15 a. m. la tarifa publicada por EPM. EPM fija la tarifa por mes, así que el valor cambia cuando EPM publica el nuevo mes.</li>
+        <li>Sin señal, la app muestra los últimos datos guardados.</li>
+      </ul>
+      <h4>Sobre la ocupación</h4>
+      <p>Las estaciones marcadas <b>EN VIVO</b> muestran cada cargador: libre, en uso o fuera de servicio (retraso de 5 a 15 minutos). EPM solo publica el estado general de la estación; cuando la UPME abra el sistema nacional <b>SIEM</b> (protocolo OCPI) la app podrá leer también la ocupación de EPM y Celsia sin reinstalarla.</p>
+      <h4>Instalar en el iPhone</h4>
+      <p>Abre este enlace en <b>Safari</b> → botón Compartir → <b>Agregar a pantalla de inicio</b>. Queda como una app y se actualiza sola.</p>
+      <p class="nota" id="i-fuentes"></p>
+    </div>
+  </section>
+</main>
+
+<nav>
+  <button class="on" data-v="mapa" onclick="ir('mapa')"><i>🗺️</i>Mapa</button>
+  <button data-v="lista" onclick="ir('lista')"><i>📋</i>Estaciones</button>
+  <button data-v="precios" onclick="ir('precios')"><i>💲</i>Precio kWh</button>
+  <button data-v="info" onclick="ir('info')"><i>ℹ️</i>Info</button>
+</nav>
+
+<div id="velo" onclick="cerrarHoja()"></div>
+<div id="hoja"></div>
+<div id="toast"></div>
+
+<script>
+var EPM_URL = 'https://services1.arcgis.com/lHSB5M3vxFT82S7P/arcgis/rest/services/Estaciones_de_carga_el%C3%A9ctrica/FeatureServer/0/query?where=1%3D1&outFields=*&outSR=4326&f=json';
+var OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter'];
+var CENTRO = [6.2442, -75.5812], RADIO_KM = 60;
+var QUERY = '[out:json][timeout:25];nwr["amenity"="charging_station"](around:' + (RADIO_KM * 1000) + ',' + CENTRO[0] + ',' + CENTRO[1] + ');out center tags;';
+var REFRESCO_MS = 3 * 60 * 1000;
+var CLAVE = 'electrolineras_v1';
+
+var S = {est: [], precios: null, act: {}, filtro: 'todas', pos: null, cargando: false};
+var mapa, capa, marcas = {};
+
+function pad(n) { return (n < 10 ? '0' : '') + n; }
+function cop(v) { return '$' + Math.round(v).toLocaleString('es-CO'); }
+function cop1(v) { return '$' + v.toLocaleString('es-CO', {minimumFractionDigits: 1, maximumFractionDigits: 1}); }
+function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]; }); }
+function enValle(lat, lon) { return dist(CENTRO[0], CENTRO[1], lat, lon) <= RADIO_KM; }
+function dist(a, b, c, d) {
+  var R = 6371, x = (c - a) * Math.PI / 180, y = (d - b) * Math.PI / 180;
+  var h = Math.sin(x / 2) * Math.sin(x / 2) + Math.cos(a * Math.PI / 180) * Math.cos(c * Math.PI / 180) * Math.sin(y / 2) * Math.sin(y / 2);
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+function hace(ts) {
+  if (!ts) return 'nunca';
+  var s = Math.round((Date.now() - ts) / 1000);
+  if (s < 60) return 'hace un momento';
+  if (s < 3600) return 'hace ' + Math.round(s / 60) + ' min';
+  if (s < 86400) return 'hace ' + Math.round(s / 3600) + ' h';
+  return new Date(ts).toLocaleDateString('es-CO', {day: 'numeric', month: 'short'});
+}
+function toast(t) {
+  var el = document.getElementById('toast');
+  el.textContent = t; el.classList.add('on');
+  clearTimeout(toast.t); toast.t = setTimeout(function () { el.classList.remove('on'); }, 2600);
+}
+
+/* ---------- normalizacion ---------- */
+function conectores(txt) {
+  var t = (txt || '').toLowerCase().replace(/ccs type ?([12])/g, 'ccs$1'), r = [];
+  if (/ccs1|combo 1/.test(t)) r.push('CCS1');
+  if (/ccs2|combo 2/.test(t)) r.push('CCS2');
+  if (/\bccs\b/.test(t) && r.indexOf('CCS1') < 0 && r.indexOf('CCS2') < 0) r.push('CCS');
+  if (/chademo/.test(t)) r.push('CHAdeMO');
+  if (/tipo ?2|mennekes|type ?2/.test(t)) r.push('Tipo 2');
+  if (/tipo ?1|j1772|type ?1/.test(t)) r.push('Tipo 1');
+  if (/gb\/?t/.test(t)) r.push('GB/T');
+  if (/schuko/.test(t)) r.push('Schuko');
+  return r;
+}
+function potencia(txt) {
+  var m = /(\d+(?:[.,]\d+)?)\s*kw/i.exec(txt || '');
+  return m ? m[1].replace('.', ',') + ' kW' : '';
+}
+function estado(e) {
+  if (e.fuente === 'VIVO') {
+    var n = e.conns.length, lib = 0, uso = 0, mal = 0;
+    e.conns.forEach(function (c) { if (c.st === 'Available') lib++; else if (c.st === 'Charging' || c.st === 'Occupied' || c.st === 'Preparing' || c.st === 'Finishing') uso++; else if (c.st !== 'Unknown') mal++; });
+    if (e.fuera) return {k: 'off', txt: 'Fuera de servicio', c: 'var(--off)'};
+    if (lib) return {k: 'ok', txt: lib === n ? 'Libre · ' + n + ' de ' + n + ' disponibles' : lib + ' de ' + n + ' libres · ' + (n - lib) + ' en uso/falla', c: 'var(--ok)'};
+    if (uso) return {k: 'ocup', txt: 'Ocupada · ' + uso + ' de ' + n + ' cargando', c: 'var(--ocup)'};
+    if (mal) return {k: 'off', txt: 'No disponible', c: 'var(--off)'};
+    return {k: 'nd', txt: 'Sin reporte del operador', c: 'var(--nd)'};
+  }
+  var t = (e.estado || '').toLowerCase();
+  if (!e.estado) return {k: 'nd', txt: 'Sin dato en vivo', c: 'var(--nd)'};
+  var m = /inicio operaci[oó]n (\d{2})-(\d{2})-(\d{4})/.exec(t);
+  if (m) {
+    var f = new Date(+m[3], +m[2] - 1, +m[1]);
+    if (f > new Date()) return {k: 'prox', txt: 'Abre el ' + m[1] + '/' + m[2] + '/' + m[3], c: 'var(--prox)'};
+    return {k: 'ok', txt: 'Operativa (desde ' + m[1] + '/' + m[2] + ')', c: 'var(--ok)'};
+  }
+  if (/falla|fallo/.test(t)) return {k: 'parcial', txt: e.estado, c: 'var(--warn)'};
+  if (/sin servicio|fuera|no disponible|mantenimiento/.test(t)) return {k: 'off', txt: e.estado, c: 'var(--off)'};
+  if (/disponible|operativ|funcional/.test(t)) return {k: 'ok', txt: e.estado, c: 'var(--ok)'};
+  return {k: 'nd', txt: e.estado, c: 'var(--nd)'};
+}
+function tarifaDe(e) {
+  if (e.precio) return e.precio;
+  if (!S.precios || e.fuente !== 'EPM') return null;
+  var u = ultimoMes();
+  return /r[aá]pida/i.test(e.tipo) && !/semi/i.test(e.tipo) ? u.v.rapida : u.v.lenta;
+}
+
+function deEPM(json) {
+  return (json.features || []).map(function (f) {
+    var a = f.attributes, g = f.geometry || {};
+    return {
+      id: 'epm-' + a.OBJECTID, fuente: 'EPM', operador: a.Filial === 'EPM' ? 'EPM' : 'EPM (' + a.Filial + ')',
+      nombre: (a['Estación'] || 'Estación EPM').trim(), dir: (a['Dirección'] || '').replace(/ /g, ' ').trim(),
+      mun: (a.Municipio || '').replace('Medellin', 'Medellín'), tipo: (a.Tipo || '').replace('Rapida', 'Rápida'),
+      conect: conectores(a.Conector), conectTxt: a.Conector || '', pot: potencia(a.Conector),
+      estado: a.Estado || '', horario: a.Horario || '', pago: a.TiposDePago || '',
+      img: a.Imagen || '', editado: a.EditDate || null, lat: g.y, lon: g.x
+    };
+  }).filter(function (e) { return e.lat && enValle(e.lat, e.lon); });
+}
+var NOMBRE_OP = {terpel: 'Terpel Voltex', mubon: 'Mubon', voltop: 'Voltop', celsia: 'Celsia', ergenia: 'Ergenia', evx: 'Enel X Way', dielco: 'Dielco', cien: 'CIEN', meep: 'Meep', chec: 'CHEC', edeq: 'EDEQ', emcali: 'Emcali', link2green: 'Link2Green'};
+var ST_TXT = {Available: 'Libre', Charging: 'Cargando', Occupied: 'En uso', Preparing: 'Conectando', Finishing: 'Terminando', Unavailable: 'No disponible', Faulted: 'En falla', OutOfService: 'Fuera de servicio', Unknown: 'Sin reporte'};
+function deVivo(json) {
+  return (json.stations || []).map(function (s) {
+    var cs = s.connectors || [], dc = cs.some(function (c) { return c.currentType === 'DC'; });
+    return {
+      id: 'vivo-' + s.id, fuente: 'VIVO', operador: NOMBRE_OP[s.providerId] || s.providerId,
+      nombre: s.name, dir: (s.address && s.address.street) || '', mun: ((s.address && s.address.city) || '').trim().replace('Rio Negro', 'Rionegro').replace(/^Medellin$/, 'Medellín').replace('Popalito', 'Barbosa (Popalito)'),
+      tipo: dc ? 'Rápida' : 'Semi rápida', conect: conectores(cs.map(function (c) { return c.connectorType; }).join(' ')),
+      cargadores: cs.length, pot: s.powerMaxWatts ? Math.round(s.powerMaxWatts / 1000) + ' kW' : '',
+      precio: s.priceCopPerKwh || null, horario: s.isOpen24h ? '24 horas' : '', pago: 'App ' + (NOMBRE_OP[s.providerId] || s.providerId),
+      fuera: s.isOutOfService, estado: s.generalStatus, lat: s.latitude, lon: s.longitude,
+      conns: cs.map(function (c) { return {tipo: c.connectorType, ac: c.currentType, kw: c.powerMaxWatts ? Math.round(c.powerMaxWatts / 1000) : '', st: c.status || 'Unknown'}; })
+    };
+  }).filter(function (e) { return e.lat && enValle(e.lat, e.lon); });
+}
+function deOtras(lista, previas) {
+  return (lista || []).filter(function (o) { return !/electrolineras\.co/.test(o.fuente || ''); }).map(function (o, i) {
+    return {
+      id: 'otra-' + i, fuente: 'LISTA', operador: o.operador, nombre: o.nombre, dir: o.direccion || '', mun: o.municipio || '',
+      tipo: o.tipo || '', conect: o.conectores || [], cargadores: o.cargadores, pot: o.potencia || '', precio: o.precio_kwh || null,
+      horario: o.horario || '', pago: o.pago || '', estado: '', lat: o.lat, lon: o.lon, url: o.fuente
+    };
+  }).filter(function (o) {
+    return o.lat && enValle(o.lat, o.lon) && !previas.some(function (e) { return e.operador.split(' ')[0] === o.operador.split(' ')[0] && dist(e.lat, e.lon, o.lat, o.lon) < 0.3; });
+  });
+}
+function deOSM(json, epm) {
+  return (json.elements || []).map(function (x) {
+    var t = x.tags || {}, lat = x.lat || (x.center && x.center.lat), lon = x.lon || (x.center && x.center.lon);
+    var socks = Object.keys(t).filter(function (k) { return /^socket:/.test(k) && !/:output|:current|:voltage/.test(k); }).join(' ').replace(/socket:|_/g, ' ');
+    var op = t.brand || t.operator || t.network || 'Operador sin identificar';
+    var cap = parseInt(t.capacity, 10);
+    return {
+      id: 'osm-' + x.id, fuente: 'OSM', operador: op, nombre: t.name || ('Punto de carga ' + op),
+      dir: [t['addr:street'], t['addr:housenumber']].filter(Boolean).join(' '), mun: t['addr:city'] || '',
+      tipo: /ccs|chademo/i.test(socks) ? 'Rápida' : '', conect: conectores(socks), conectTxt: socks,
+      pot: t['charging_station:output'] || '', cargadores: isNaN(cap) ? null : cap,
+      estado: '', horario: t.opening_hours || '', pago: t['payment:app'] || '', lat: lat, lon: lon
+    };
+  }).filter(function (o) {
+    if (!o.lat) return false;
+    if (/epm/i.test(o.operador) || !enValle(o.lat, o.lon)) return false;
+    return !epm.some(function (e) { return dist(e.lat, e.lon, o.lat, o.lon) < 0.25; });
+  });
+}
+
+/* ---------- carga de datos ---------- */
+function traer(url, ms) {
+  var c = new AbortController(), t = setTimeout(function () { c.abort(); }, ms || 20000);
+  return fetch(url, {signal: c.signal, cache: 'no-store'}).then(function (r) {
+    clearTimeout(t); if (!r.ok) throw new Error(r.status); return r.json();
+  });
+}
+function traerOSM(i) {
+  i = i || 0;
+  return traer(OVERPASS[i] + '?data=' + encodeURIComponent(QUERY), 30000).catch(function (e) {
+    if (i + 1 < OVERPASS.length) return traerOSM(i + 1); throw e;
+  });
+}
+
+function refrescar(manual) {
+  if (S.cargando) return;
+  S.cargando = true;
+  document.getElementById('btn-ref').classList.add('spin');
+  var p1 = traer(EPM_URL, 8000).then(function (j) { if (j.error) throw new Error('EPM'); S.epm = deEPM(j); S.act.epm = Date.now(); S.act.respaldo = false; })
+    .catch(function () {
+      return traer('estaciones_epm.json?t=' + Date.now()).then(function (j) {
+        if (!S.epm || !S.act.epm || Date.now() - S.act.epm > 3600000) { S.epm = deEPM(j); S.act.respaldo = true; }
+      });
+    }).catch(function () { S.errEPM = true; });
+  var p2 = traer('precios.json?t=' + Date.now()).then(function (j) { S.precios = j; S.act.precios = Date.now(); }).catch(function () {});
+  var p3 = (S.act.osm && Date.now() - S.act.osm < 6 * 3600 * 1000 && !manual) ? Promise.resolve() :
+    traer('osm.json?t=' + Date.now()).then(function (j) { S.osmRaw = j; S.act.osm = Date.now(); }).catch(function () {});
+  var p4 = traer('vivo.json?t=' + Date.now()).then(function (j) { S.vivoRaw = j; S.act.vivo = Date.now(); }).catch(function () {});
+  var p5 = S.otras ? Promise.resolve() : traer('otras_redes.json?t=' + Date.now()).then(function (j) { S.otras = j; }).catch(function () {});
+  function componer() { S.est = unir(); guardar(); pintarTodo(); }
+  [p1, p2, p3, p4, p5].forEach(function (p) { p.then(componer); });
+  Promise.all([p1, p2, p3, p4, p5]).then(function () {
+    if (manual) toast(S.errEPM ? 'Sin conexión con EPM: mostrando lo último guardado' : 'Datos actualizados');
+    S.errEPM = false;
+  }).finally(function () {
+    S.cargando = false;
+    document.getElementById('btn-ref').classList.remove('spin');
+  });
+}
+function unir() {
+  var base = (S.epm || []).concat(S.vivoRaw ? deVivo(S.vivoRaw) : []);
+  base = base.concat(deOtras(S.otras, base));
+  return base.concat(S.osmRaw ? deOSM(S.osmRaw, base) : []);
+}
+function guardar() {
+  try { localStorage.setItem(CLAVE, JSON.stringify({epm: S.epm, osmRaw: S.osmRaw, vivoRaw: S.vivoRaw, otras: S.otras, precios: S.precios, act: S.act})); } catch (e) {}
+}
+function cargarGuardado() {
+  try {
+    var d = JSON.parse(localStorage.getItem(CLAVE) || 'null');
+    if (!d) return;
+    S.epm = d.epm; S.osmRaw = d.osmRaw; S.vivoRaw = d.vivoRaw; S.otras = d.otras; S.precios = d.precios; S.act = d.act || {};
+    S.est = unir();
+  } catch (e) {}
+}
+
+/* ---------- pintar ---------- */
+function pintarTodo() {
+  pintarKPIs(); pintarMapa(); pintarChips(); pintarLista(); pintarPrecios(); pintarActualizado();
+}
+function pintarActualizado() {
+  var t = S.vivoRaw && S.vivoRaw.sincronizado ? Math.max.apply(null, Object.keys(S.vivoRaw.sincronizado).map(function (k) { return Date.parse(S.vivoRaw.sincronizado[k]) || 0; })) : 0;
+  document.getElementById('actualizado').textContent = t ? 'Ocupación en vivo · ' + hace(t) : S.act.epm ? 'Estado EPM ' + hace(S.act.epm) : 'Sin datos aún';
+}
+function pintarKPIs() {
+  var ok = 0, con = 0;
+  S.est.forEach(function (e) { if (estado(e).k === 'ok') ok++; con += e.cargadores || e.conect.length || 1; });
+  document.getElementById('k-est').textContent = S.est.length || '–';
+  document.getElementById('k-ok').textContent = S.est.length ? ok : '–';
+  document.getElementById('k-con').textContent = con || '–';
+  document.getElementById('k-precio').textContent = S.precios ? cop(ultimoMes().v.rapida) : '–';
+}
+
+function iniciarMapa() {
+  mapa = L.map('mapa', {zoomControl: false, attributionControl: true}).setView([6.225, -75.58], 11);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '&copy; OpenStreetMap'
+  }).addTo(mapa);
+  L.control.zoom({position: 'topright'}).addTo(mapa);
+  capa = L.layerGroup().addTo(mapa);
+}
+function pintarMapa() {
+  if (!mapa) return;
+  capa.clearLayers(); marcas = {};
+  S.est.forEach(function (e) {
+    var st = estado(e), color = getComputedStyle(document.documentElement).getPropertyValue(st.c.slice(4, -1)).trim();
+    var m = L.circleMarker([e.lat, e.lon], {
+      radius: /r[aá]pida/i.test(e.tipo) && !/semi/i.test(e.tipo) ? 11 : 8,
+      color: '#fff', weight: 2, fillColor: color, fillOpacity: 1
+    }).on('click', function () { abrir(e.id); });
+    m.bindTooltip(esc(e.nombre), {direction: 'top', offset: [0, -8]});
+    m.addTo(capa); marcas[e.id] = m;
+  });
+  if (S.pos) L.circleMarker([S.pos.lat, S.pos.lon], {radius: 7, color: '#fff', weight: 3, fillColor: '#2563eb', fillOpacity: 1}).addTo(capa);
+}
+
+var FILTROS = [
+  ['todas', 'Todas'], ['ok', '🟢 Libres'], ['vivo', '📡 En vivo'], ['rapida', '⚡ Rápidas'], ['epm', 'EPM'], ['terpel', 'Terpel Voltex'],
+  ['celsia', 'Celsia'], ['mubon', 'Mubon'], ['cc', 'Centros comerciales'], ['otras', 'Otras'], ['falla', 'Con falla']
+];
+function pintarChips() {
+  document.getElementById('chips').innerHTML = FILTROS.map(function (f) {
+    return '<button class="chip' + (S.filtro === f[0] ? ' on' : '') + '" onclick="S.filtro=\'' + f[0] + '\';pintarChips();pintarLista()">' + f[1] + '</button>';
+  }).join('');
+}
+function pasaFiltro(e) {
+  var k = estado(e).k;
+  switch (S.filtro) {
+    case 'ok': return k === 'ok';
+    case 'rapida': return /r[aá]pida/i.test(e.tipo) && !/semi/i.test(e.tipo);
+    case 'vivo': return e.fuente === 'VIVO';
+    case 'epm': return e.fuente === 'EPM';
+    case 'terpel': return /terpel|voltex/i.test(e.operador + e.nombre);
+    case 'celsia': return /celsia/i.test(e.operador);
+    case 'mubon': return /mubon/i.test(e.operador);
+    case 'cc': return /\bcc\b|centro comercial|mall|plaza|unicentro|oviedo|tesoro|santaf|mayorca|molinos|arkadia|florida|viva |premium|fabricato|puerta del norte|san nicol|llanogrande|sao paulo|la fe|exito|éxito|carulla/i.test(e.nombre + ' ' + e.operador);
+    case 'otras': return e.fuente !== 'EPM' && !/terpel|voltex|celsia|mubon/i.test(e.operador + e.nombre);
+    case 'falla': return k === 'off' || k === 'parcial';
+  }
+  return true;
+}
+function pintarLista() {
+  var q = (document.getElementById('q').value || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  var l = S.est.filter(pasaFiltro).filter(function (e) {
+    if (!q) return true;
+    return (e.nombre + ' ' + e.dir + ' ' + e.mun + ' ' + e.operador).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').indexOf(q) >= 0;
+  });
+  if (S.pos) l.forEach(function (e) { e.km = dist(S.pos.lat, S.pos.lon, e.lat, e.lon); });
+  var orden = {ok: 0, parcial: 1, ocup: 2, prox: 3, nd: 4, off: 5};
+  l.sort(function (a, b) {
+    if (S.pos) return a.km - b.km;
+    return orden[estado(a).k] - orden[estado(b).k] || a.nombre.localeCompare(b.nombre);
+  });
+  document.getElementById('lista').innerHTML = l.length ? l.map(function (e) {
+    var st = estado(e), tf = tarifaDe(e);
+    return '<div class="card est" onclick="abrir(\'' + e.id + '\')">' +
+      '<div class="dot" style="background:' + st.c + '"></div>' +
+      '<div style="min-width:0"><h3>' + esc(e.nombre) + (e.fuente === 'VIVO' ? ' <span class="badge" style="background:var(--ocup);font-size:9.5px;padding:1px 5px;vertical-align:2px">EN VIVO</span>' : '') + '</h3>' +
+      '<p>' + esc([e.operador, e.mun].filter(Boolean).join(' · ')) + '</p>' +
+      '<p style="color:' + st.c + ';font-weight:600">' + esc(st.txt) + '</p>' +
+      '<div class="tags">' + (e.tipo ? '<span class="tag">' + esc(e.tipo) + '</span>' : '') +
+      e.conect.map(function (c) { return '<span class="tag">' + c + '</span>'; }).join('') + '</div></div>' +
+      '<div class="der">' + (S.pos ? '<b>' + e.km.toFixed(1).replace('.', ',') + ' km</b>' : '') +
+      (tf ? '<b>' + cop(tf) + '</b><span>/kWh</span>' : '') + '</div></div>';
+  }).join('') : '<div class="vacio">No hay estaciones con ese filtro.</div>';
+}
+
+function abrir(id) {
+  var e = S.est.filter(function (x) { return x.id === id; })[0];
+  if (!e) return;
+  var st = estado(e), tf = tarifaDe(e);
+  var nav = e.lat + ',' + e.lon;
+  var appOp = e.fuente === 'VIVO' ? 'https://electrolineras.co/' : e.fuente === 'EPM' ? 'https://www.epm.com.co/clientesyusuarios/energia/hogar/movilidad-electrica/'
+    : /terpel|voltex/i.test(e.operador) ? 'https://www.terpel.com/voltex'
+    : /celsia/i.test(e.operador) ? 'https://www.celsia.com/es/movilidad-electrica/'
+    : /enel/i.test(e.operador) ? 'https://www.enelxway.com/co/es' : '';
+  var filas = [
+    ['Estado', '<span class="badge" style="background:' + st.c + '">' + esc(st.txt) + '</span>'],
+    ['Operador', esc(e.operador)],
+    ['Tipo de carga', esc(e.tipo || 'No informado')],
+    e.cargadores ? ['Cargadores', e.cargadores] : null,
+    ['Tipos de conector', e.conect.length ? e.conect.join(', ') : 'No informado'],
+    e.pot ? ['Potencia', esc(e.pot)] : null,
+    tf ? ['Precio kWh hoy', '<b>' + cop1(tf) + '</b>' + (e.fuente === 'EPM' ? ' <small>(tarifa EPM)</small>' : '')] : null,
+    e.horario ? ['Horario', esc(e.horario)] : null,
+    e.pago ? ['Medio de pago', esc(e.pago)] : null,
+    ['Fuente', {EPM: 'Mapa oficial Grupo EPM', VIVO: 'Operador vía electrolineras.co (cada 5 min)', LISTA: 'Listado verificado (sin ocupación en vivo)', OSM: 'OpenStreetMap (sin ocupación en vivo)'}[e.fuente]]
+  ].filter(Boolean);
+  var conns = e.conns ? '<h4>Cargadores ahora</h4>' + e.conns.map(function (c, i) {
+    var col = c.st === 'Available' ? 'var(--ok)' : /Charging|Occupied|Preparing|Finishing/.test(c.st) ? 'var(--ocup)' : c.st === 'Unknown' ? 'var(--nd)' : 'var(--off)';
+    return '<div class="fila"><span>#' + (i + 1) + ' · ' + esc(c.tipo) + (c.ac && c.tipo.indexOf(c.ac) < 0 ? ' ' + c.ac : '') + (c.kw ? ' · ' + c.kw + ' kW' : '') + '</span><span><span class="badge" style="background:' + col + '">' + (ST_TXT[c.st] || esc(c.st)) + '</span></span></div>';
+  }).join('') : '';
+  document.getElementById('hoja').innerHTML = '<div class="asa"></div>' +
+    '<h2>' + esc(e.nombre) + '</h2><div class="sub">' + esc([e.dir, e.mun].filter(Boolean).join(', ')) + '</div>' +
+    (/^https:/.test(e.img) ? '<img src="' + esc(e.img) + '" alt="" onerror="this.remove()">' : '') +
+    filas.map(function (f) { return '<div class="fila"><span>' + f[0] + '</span><span>' + f[1] + '</span></div>'; }).join('') + conns +
+    '<div class="btns">' +
+    '<a class="btn pri" href="https://www.google.com/maps/dir/?api=1&destination=' + nav + '" target="_blank" rel="noopener">🧭 Cómo llegar</a>' +
+    '<a class="btn" href="https://waze.com/ul?ll=' + nav + '&navigate=yes" target="_blank" rel="noopener">🚗 Waze</a>' +
+    (appOp ? '<a class="btn" style="grid-column:1/-1" href="' + appOp + '" target="_blank" rel="noopener">Ver ocupación en app del operador</a>' : '') +
+    '</div>' +
+    (e.fuente === 'LISTA' || e.fuente === 'OSM' ? '<p class="nota">Esta red no publica su ocupación de forma abierta; confirma disponibilidad en la app del operador.</p>' : '');
+  document.getElementById('hoja').classList.add('on');
+  document.getElementById('velo').classList.add('on');
+  if (mapa && document.getElementById('v-mapa').classList.contains('on')) mapa.panTo([e.lat - 0.004, e.lon]);
+}
+function cerrarHoja() {
+  document.getElementById('hoja').classList.remove('on');
+  document.getElementById('velo').classList.remove('on');
+}
+
+/* ---------- precios ---------- */
+var MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+function nomMes(k) { var p = k.split('-'); return MESES[+p[1] - 1] + ' ' + p[0]; }
+function ultimoMes() {
+  var h = S.precios.historico, ks = Object.keys(h).sort();
+  return {k: ks[ks.length - 1], v: h[ks[ks.length - 1]], prev: h[ks[ks.length - 2]], ks: ks};
+}
+function variacion(id, a, b) {
+  var el = document.getElementById(id);
+  if (!b) { el.textContent = ''; return; }
+  var p = (a - b) / b * 100;
+  el.className = p > 0 ? 'sube' : p < 0 ? 'baja' : '';
+  el.textContent = (p > 0 ? '▲ ' : p < 0 ? '▼ ' : '') + Math.abs(p).toFixed(1).replace('.', ',') + '% vs mes anterior';
+}
+function pintarPrecios() {
+  var hoy = new Date();
+  document.getElementById('p-hoy').textContent = hoy.toLocaleDateString('es-CO', {weekday: 'long', day: 'numeric', month: 'long'});
+  if (!S.precios) return;
+  var u = ultimoMes();
+  document.getElementById('p-mes').textContent = 'vigente desde ' + nomMes(u.k);
+  document.getElementById('p-lenta').textContent = cop1(u.v.lenta);
+  document.getElementById('p-rapida').textContent = cop1(u.v.rapida);
+  variacion('p-lenta-d', u.v.lenta, u.prev && u.prev.lenta);
+  variacion('p-rapida-d', u.v.rapida, u.prev && u.prev.rapida);
+  var ks = u.ks.slice(-12).reverse(), h = S.precios.historico;
+  document.getElementById('tabla').innerHTML = '<tr><th>Mes</th><th>Lenta</th><th>Rápida</th></tr>' + ks.map(function (k) {
+    return '<tr><td>' + nomMes(k) + '</td><td>' + cop1(h[k].lenta) + '</td><td>' + cop1(h[k].rapida) + '</td></tr>';
+  }).join('');
+  var c = new Date(S.precios.consultado);
+  document.getElementById('p-fuente').innerHTML = 'Fuente: ' + esc(S.precios.fuente) + '. Valores en COP por kWh. Última verificación automática: ' +
+    c.toLocaleString('es-CO', {day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit'}) +
+    '. <a href="' + esc(S.precios.url) + '" target="_blank" rel="noopener" style="color:var(--acc)">Ver PDF de EPM</a>';
+  grafica(); calcular(); tablaRedes();
+}
+function tablaRedes() {
+  var g = {};
+  S.est.forEach(function (e) {
+    if (e.fuente !== 'VIVO' || !e.precio) return;
+    var k = e.operador + (e.tipo === 'Rápida' ? ' · rápida DC' : ' · AC');
+    (g[k] = g[k] || []).push(e.precio);
+  });
+  var ks = Object.keys(g).sort();
+  document.getElementById('tabla-redes').innerHTML = ks.length ? '<tr><th>Red</th><th>Mín</th><th>Máx</th></tr>' + ks.map(function (k) {
+    return '<tr><td>' + esc(k) + '</td><td>' + cop(Math.min.apply(null, g[k])) + '</td><td>' + cop(Math.max.apply(null, g[k])) + '</td></tr>';
+  }).join('') : '<tr><td>Cargando…</td></tr>';
+}
+function grafica() {
+  var h = S.precios.historico, ks = Object.keys(h).sort().slice(-24);
+  var vals = [];
+  ks.forEach(function (k) { vals.push(h[k].lenta, h[k].rapida); });
+  var min = Math.floor(Math.min.apply(null, vals) / 100) * 100, max = Math.ceil(Math.max.apply(null, vals) / 100) * 100;
+  var W = 340, H = 170, L0 = 44, R0 = 8, T0 = 8, B0 = 22;
+  function x(i) { return L0 + i * (W - L0 - R0) / (ks.length - 1); }
+  function y(v) { return T0 + (max - v) * (H - T0 - B0) / (max - min); }
+  var svg = '';
+  for (var g = min; g <= max; g += (max - min) / 4) {
+    svg += '<line x1="' + L0 + '" x2="' + (W - R0) + '" y1="' + y(g) + '" y2="' + y(g) + '" stroke="var(--line)" stroke-width="1"/>' +
+      '<text x="' + (L0 - 5) + '" y="' + (y(g) + 3.5) + '" text-anchor="end" font-size="10" fill="var(--mute)">' + Math.round(g).toLocaleString('es-CO') + '</text>';
+  }
+  [0, Math.floor((ks.length - 1) / 2), ks.length - 1].forEach(function (i) {
+    var p = ks[i].split('-');
+    svg += '<text x="' + x(i) + '" y="' + (H - 6) + '" text-anchor="' + (i === 0 ? 'start' : i === ks.length - 1 ? 'end' : 'middle') + '" font-size="10" fill="var(--mute)">' + MESES[+p[1] - 1].slice(0, 3) + ' ' + p[0].slice(2) + '</text>';
+  });
+  [['rapida', 'var(--acc2)'], ['lenta', 'var(--acc)']].forEach(function (s) {
+    svg += '<polyline fill="none" stroke="' + s[1] + '" stroke-width="2.2" stroke-linejoin="round" points="' +
+      ks.map(function (k, i) { return x(i).toFixed(1) + ',' + y(h[k][s[0]]).toFixed(1); }).join(' ') + '"/>';
+    var i = ks.length - 1;
+    svg += '<circle cx="' + x(i) + '" cy="' + y(h[ks[i]][s[0]]) + '" r="3.5" fill="' + s[1] + '"/>';
+  });
+  document.getElementById('graf').innerHTML = svg;
+}
+function calcular() {
+  var bat = +document.getElementById('c-bat').value, de = +document.getElementById('c-de').value, a = +document.getElementById('c-a').value;
+  if (a <= de) { a = Math.min(100, de + 5); document.getElementById('c-a').value = a; }
+  document.getElementById('c-bat-v').textContent = bat + ' kWh';
+  document.getElementById('c-de-v').textContent = de + '%';
+  document.getElementById('c-a-v').textContent = a + '%';
+  var kwh = bat * (a - de) / 100;
+  document.getElementById('c-kwh').textContent = kwh.toFixed(1).replace('.', ',') + ' kWh';
+  if (!S.precios) return;
+  var u = ultimoMes().v;
+  document.getElementById('c-lenta').textContent = cop(kwh * u.lenta);
+  document.getElementById('c-rapida').textContent = cop(kwh * u.rapida);
+}
+
+/* ---------- navegacion ---------- */
+function ir(v) {
+  document.querySelectorAll('.vista').forEach(function (s) { s.classList.toggle('on', s.id === 'v-' + v); });
+  document.querySelectorAll('nav button').forEach(function (b) { b.classList.toggle('on', b.dataset.v === v); });
+  if (v === 'mapa' && mapa) setTimeout(function () { mapa.invalidateSize(); }, 50);
+}
+function cercaDeMi() {
+  if (!navigator.geolocation) return toast('Tu teléfono no permite ubicación');
+  toast('Buscando tu ubicación…');
+  navigator.geolocation.getCurrentPosition(function (p) {
+    S.pos = {lat: p.coords.latitude, lon: p.coords.longitude};
+    pintarLista(); pintarMapa(); toast('Ordenadas por distancia');
+  }, function () { toast('No se pudo obtener la ubicación'); }, {enableHighAccuracy: true, timeout: 10000});
+}
+
+/* ---------- arranque ---------- */
+document.getElementById('i-fuentes').innerHTML = 'Fuentes: <a href="https://experience.arcgis.com/experience/fa89a4913e834aec87fdc30d7b91e5a0" target="_blank" rel="noopener" style="color:var(--acc)">Mapa de estaciones Grupo EPM</a>, OpenStreetMap y tarifas URV de EPM. App de consulta no oficial.';
+iniciarMapa();
+cargarGuardado();
+pintarTodo();
+refrescar(false);
+setInterval(function () { if (!document.hidden) refrescar(false); }, REFRESCO_MS);
+setInterval(pintarActualizado, 30000);
+document.addEventListener('visibilitychange', function () {
+  if (!document.hidden && (!S.act.epm || Date.now() - S.act.epm > 60000)) refrescar(false);
+});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>

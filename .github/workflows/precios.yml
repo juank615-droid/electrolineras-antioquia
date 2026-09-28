@@ -1,0 +1,22 @@
+name: Precio kWh EPM (diario)
+on:
+  schedule:
+    - cron: "15 11 * * *"   # 6:15 a. m. Colombia
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: datos
+jobs:
+  precios:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install pypdf && python scripts/actualizar_precios.py
+      - run: python scripts/actualizar_osm.py || true
+      - run: |
+          git config user.name "actualizador-datos"
+          git config user.email "actions@users.noreply.github.com"
+          git add precios.json osm.json
+          git diff --cached --quiet || (git commit -m "Precios EPM $(date -u +%F)" && git pull --rebase && git push)

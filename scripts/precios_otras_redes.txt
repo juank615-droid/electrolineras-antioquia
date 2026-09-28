@@ -1,0 +1,25 @@
+PRECIOS CARGA PUBLICA - OTRAS REDES (no EPM), Valle de Aburra
+Consultado: 28-sep-2026
+
+TERPEL VOLTEX
+- Tarifa actual en Medellin: $1.750 COP/kWh (DC 40-50 kW: El Encierro, Autopista Norte, La 65, La America, Zenu Norte)
+  y $1.800 COP/kWh (Popalito, Barbosa). Fuente: agregador electrolineras.co, que sincroniza con la app Terpel
+  (sync 2026-09-28): https://electrolineras.co/api/stations/nearby?lat=6.22&lng=-75.58&limit=200
+- Noticia nov-2025: precio promedio entre $1.650 y $1.800 COP/kWh.
+  https://www.valoraanalitik.com/terpel-creo-nueva-filial-en-colombia-movilidad-electrica-carga-en-menos-de-30-minutos-y-precios-desde-1-600/
+- Noticia oct-2024 (historico): $1.350/kWh en AC y $1.750/kWh en DC.
+  https://www.elcarrocolombiano.com/transporte/la-infraestructura-para-electricos-crece-en-colombia-con-nuevas-estaciones-carga-rapida/
+
+CELSIA
+- No se encontro tarifa publica por kWh para 2026. Los cargadores Celsia en centros comerciales de Medellin
+  (Oviedo, Del Este, Viva Envigado, Premium Plaza, Arkadia, Amsterdam Plaza, El Tesoro) se reportan como
+  GRATUITOS (solo se paga parqueadero): https://bydcolombiaev.com/electrolineras-medellin.html
+  Del Este: cargadores gratuitos de 7,2 kW: https://www.larepublica.co/empresas/celsia-abrira-estacion-de-carga-electrica-en-alianza-con-el-centro-comercial-del-este-2584185
+- El pago/activacion se hace en la app "Movilidad Electrica Celsia" (Etecnic):
+  https://play.google.com/store/apps/details?id=com.etecnic.celsia
+- Celsia no aparece sincronizada con estaciones en el Valle de Aburra en electrolineras.co, asi que no hay precio en vivo.
+
+OTRAS (misma fuente electrolineras.co, sep-2026)
+- Voltop: $1.780/kWh (San Fernando Plaza AC 7 kW; Wake, El Poblado, DC 80 kW)
+- Mubon: $1.200-$1.660/kWh (Carulla/Exito $1.600; Coltejer y Movicentro $1.200; Mall Palms Avenue $1.660; Mall La Strada $500)
+- Referencia EPM (bydcolombiaev.com): ~$1.500/kWh o mas
