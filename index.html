@@ -174,6 +174,7 @@ th{color:var(--mute);font-weight:500}
       <input id="q" type="search" placeholder="Buscar estación, barrio o municipio" oninput="pintarLista()">
       <button onclick="cercaDeMi()">📍 Cerca</button>
     </div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:8px"><input type="checkbox" id="soloY" onchange="cambiarY(this.checked)" style="width:18px;height:18px"> Solo compatibles con mi Tesla Model Y (CCS2 / Tipo 2)</label>
     <div class="chips" id="chips"></div>
     <select id="red" onchange="S.red=this.value;pintarLista();pintarMapa()" style="width:100%;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:14px;margin-bottom:8px"></select>
     <div id="lista"></div>
@@ -260,7 +261,7 @@ var QUERY = '[out:json][timeout:25];nwr["amenity"="charging_station"](around:' +
 var REFRESCO_MS = 3 * 60 * 1000;
 var CLAVE = 'electrolineras_v1';
 
-var S = {est: [], precios: null, act: {}, filtro: 'todas', red: '', pos: null, cargando: false};
+var S = {est: [], precios: null, act: {}, filtro: 'todas', red: '', soloY: (function () { try { return localStorage.getItem('soloY') !== '0'; } catch (e) { return true; } })(), pos: null, cargando: false};
 var mapa, capa, marcas = {};
 
 function pad(n) { return (n < 10 ? '0' : '') + n; }
@@ -433,6 +434,17 @@ function refrescar(manual) {
     document.getElementById('btn-ref').classList.remove('spin');
   });
 }
+/* Tesla Model Y (Colombia): puerto CCS2 = Tipo 2 en AC + CCS2 en DC */
+var COMPAT = {si: ['#16a34a', 'Sirve para tu Model Y'], adapt: ['#d97706', 'Model Y: solo con adaptador Tipo 1→Tipo 2'], no: ['#dc2626', 'No sirve para Model Y'], nd: ['#6b7280', 'Model Y: conector sin confirmar']};
+function compat(e) {
+  var c = e.conect || [];
+  if (/tesla/i.test(e.operador) || c.indexOf('CCS2') >= 0 || c.indexOf('Tipo 2') >= 0 || c.indexOf('CCS') >= 0) return 'si';
+  if (!c.length) return 'nd';
+  if (c.indexOf('Tipo 1') >= 0) return 'adapt';
+  return 'no';
+}
+function visibles() { return S.soloY ? S.est.filter(function (e) { return compat(e) !== 'no'; }) : S.est; }
+function cambiarY(v) { S.soloY = v; try { localStorage.setItem('soloY', v ? '1' : '0'); } catch (e) {} pintarTodo(); }
 function unir() {
   var base = (S.epm || []).concat(S.vivoRaw ? deVivo(S.vivoRaw) : []);
   base = base.concat(deOtras(S.otras, base));
@@ -452,7 +464,7 @@ function cargarGuardado() {
 
 /* ---------- pintar ---------- */
 function pintarTodo() {
-  pintarKPIs(); pintarMapa(); pintarChips(); pintarRedes(); pintarLista(); pintarPrecios(); pintarActualizado(); pintarCerca();
+  document.getElementById('soloY').checked = S.soloY; pintarKPIs(); pintarMapa(); pintarChips(); pintarRedes(); pintarLista(); pintarPrecios(); pintarActualizado(); pintarCerca();
 }
 function pintarActualizado() {
   var t = S.vivoRaw && S.vivoRaw.sincronizado ? Math.max.apply(null, Object.keys(S.vivoRaw.sincronizado).map(function (k) { return Date.parse(S.vivoRaw.sincronizado[k]) || 0; })) : 0;
@@ -460,9 +472,9 @@ function pintarActualizado() {
 }
 function pintarKPIs() {
   var ok = 0, con = 0;
-  S.est.forEach(function (e) { if (estado(e).k === 'ok') ok++; con += e.cargadores || e.conect.length || 1; });
-  document.getElementById('k-est').textContent = S.est.length || '–';
-  document.getElementById('k-ok').textContent = S.est.length ? ok : '–';
+  visibles().forEach(function (e) { if (estado(e).k === 'ok') ok++; con += e.cargadores || e.conect.length || 1; });
+  document.getElementById('k-est').textContent = visibles().length || '–';
+  document.getElementById('k-ok').textContent = visibles().length ? ok : '–';
   document.getElementById('k-con').textContent = con || '–';
   var t = tarifasPorOperador().filter(function (x) { return x.min > 0; }).sort(function (a, b) { return a.min - b.min; })[0];
   document.getElementById('k-precio').textContent = t ? cop(t.min) : '–';
@@ -482,7 +494,7 @@ function iniciarMapa() {
 function pintarMapa() {
   if (!mapa) return;
   capa.clearLayers(); marcas = {};
-  S.est.forEach(function (e) {
+  visibles().forEach(function (e) {
     if (S.red && redDe(e) !== S.red) return;
     var st = estado(e), color = getComputedStyle(document.documentElement).getPropertyValue(st.c.slice(4, -1)).trim();
     var m = L.circleMarker([e.lat, e.lon], {
@@ -507,9 +519,9 @@ function pintarChips() {
 function redDe(e) { return e.operador.replace(/ \(.*\)$/, ''); }
 function pintarRedes() {
   var c = {};
-  S.est.forEach(function (e) { var r = redDe(e); c[r] = (c[r] || 0) + 1; });
+  visibles().forEach(function (e) { var r = redDe(e); c[r] = (c[r] || 0) + 1; });
   var el = document.getElementById('red');
-  el.innerHTML = '<option value="">Red / operador: todas (' + S.est.length + ')</option>' + Object.keys(c).sort(function (a, b) { return c[b] - c[a] || a.localeCompare(b); })
+  el.innerHTML = '<option value="">Red / operador: todas (' + visibles().length + ')</option>' + Object.keys(c).sort(function (a, b) { return c[b] - c[a] || a.localeCompare(b); })
     .map(function (r) { return '<option value="' + esc(r) + '"' + (S.red === r ? ' selected' : '') + '>' + esc(r) + ' (' + c[r] + ')</option>'; }).join('');
 }
 function pasaFiltro(e) {
@@ -532,7 +544,7 @@ function pasaFiltro(e) {
 }
 function pintarLista() {
   var q = (document.getElementById('q').value || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-  var l = S.est.filter(pasaFiltro).filter(function (e) {
+  var l = visibles().filter(pasaFiltro).filter(function (e) {
     if (!q) return true;
     return (e.nombre + ' ' + e.dir + ' ' + e.mun + ' ' + e.operador).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').indexOf(q) >= 0;
   });
@@ -549,6 +561,7 @@ function pintarLista() {
       '<div style="min-width:0"><h3>' + esc(e.nombre) + (e.fuente === 'VIVO' ? ' <span class="badge" style="background:var(--ocup);font-size:9.5px;padding:1px 5px;vertical-align:2px">EN VIVO</span>' : '') + '</h3>' +
       '<p>' + esc([e.operador, e.mun].filter(Boolean).join(' · ')) + '</p>' +
       '<p style="color:' + st.c + ';font-weight:600">' + esc(st.txt) + '</p>' +
+      '<p style="color:' + COMPAT[compat(e)][0] + ';font-size:12px;font-weight:600">' + (compat(e) === 'si' ? '✔ ' : compat(e) === 'no' ? '✖ ' : '') + COMPAT[compat(e)][1] + '</p>' +
       '<div class="tags">' + (e.tipo ? '<span class="tag">' + esc(e.tipo) + '</span>' : '') +
       e.conect.map(function (c) { return '<span class="tag">' + c + '</span>'; }).join('') + '</div></div>' +
       '<div class="der">' + (S.pos ? '<b>' + e.km.toFixed(1).replace('.', ',') + ' km</b>' : '') +
@@ -568,6 +581,7 @@ function abrir(id) {
     : /tesla/i.test(e.operador) ? 'https://www.tesla.com/es_co/findus' : '';
   var filas = [
     ['Estado', '<span class="badge" style="background:' + st.c + '">' + esc(st.txt) + '</span>'],
+    ['Tu Model Y', '<b style="color:' + COMPAT[compat(e)][0] + '">' + COMPAT[compat(e)][1] + '</b>'],
     ['Operador', esc(e.operador)],
     ['Tipo de carga', esc(e.tipo || 'No informado')],
     e.cargadores ? ['Cargadores', e.cargadores] : null,
@@ -737,9 +751,9 @@ function ubicar(silencioso, enLista) {
 }
 function pintarCerca(abrir) {
   var box = document.getElementById('cerca');
-  if (!S.pos || !S.est.length) return;
+  if (!S.pos || !visibles().length) return;
   var libres = document.getElementById('solo-libres').checked;
-  var l = S.est.map(function (e) { e.km = dist(S.pos.lat, S.pos.lon, e.lat, e.lon); return e; })
+  var l = visibles().map(function (e) { e.km = dist(S.pos.lat, S.pos.lon, e.lat, e.lon); return e; })
     .filter(function (e) { var k = estado(e).k; return libres ? k === 'ok' : k !== 'off' && k !== 'prox'; })
     .sort(function (a, b) { return a.km - b.km; }).slice(0, 8);
   document.getElementById('carrusel').innerHTML = l.length ? l.map(function (e) {

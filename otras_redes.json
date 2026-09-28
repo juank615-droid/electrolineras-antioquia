@@ -740,7 +740,7 @@
   "pago": "App Tesla ($1.300/kWh tarifa dueños Tesla; otros VE vía app Tesla si está habilitado)",
   "fuente": "https://supercharge.info ; https://www.tesla.com/findus?location=466857 ; https://kallpaenergy.com/estaciones/medellin/unicentro-shopping-mall",
   "verificado": "2026-09",
-  "precio_nota": "Supercharger V4; Tesla no confirma acceso para otras marcas en este sitio"
+  "precio_nota": "Supercharger V4 (CCS2). Precio para vehículos Tesla, pago en la app Tesla."
  },
  {
   "nombre": "Hotel Poblado Plaza (Split Power)",
