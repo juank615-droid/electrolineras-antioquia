@@ -554,7 +554,7 @@
   "nombre": "Ergenia - McDonald's Poblado",
   "operador": "Ergenia",
   "tipo": "Rápida",
-  "direccion": "Calle 6 Sur #43A-24 (McDonald's Aguacatala)",
+  "direccion": "Cra. 43A #4 Sur-115, El Poblado",
   "municipio": "Medellín",
   "lat": 6.199542,
   "lon": -75.573889,
@@ -563,8 +563,8 @@
    "CCS1",
    "CCS2"
   ],
-  "potencia": "",
-  "precio_kwh": null,
+  "potencia": "30 kW",
+  "precio_kwh": 2376,
   "horario": "",
   "pago": "App Ergenia",
   "fuente": "https://www.electromaps.com/es/puntos-carga/colombia/medellin/medellin/ergenia-mc-donalds-poblado-medellin-calle-6-sur",
@@ -575,17 +575,17 @@
   "nombre": "Voltrelli Palmas",
   "operador": "Voltrelli",
   "tipo": "Rápida",
-  "direccion": "Calle 26 #38 (Av. Las Palmas)",
+  "direccion": "Calle 26 #38-07",
   "municipio": "Medellín",
   "lat": 6.224527,
   "lon": -75.565285,
-  "cargadores": 4,
+  "cargadores": 2,
   "conectores": [
-   "CCS2",
-   "GB/T"
+   "GB/T",
+   "CCS2"
   ],
-  "potencia": "",
-  "precio_kwh": null,
+  "potencia": "120 kW",
+  "precio_kwh": 1800,
   "horario": "",
   "pago": "",
   "fuente": "https://www.electromaps.com/es/puntos-carga/colombia/medellin/medellin/voltrelli-palmas-calle-26",
@@ -721,5 +721,340 @@
   "fuente": "https://www.openstreetmap.org/node/13009989241",
   "verificado": "2026-07",
   "precio_nota": ""
+ },
+ {
+  "nombre": "Tesla Supercharger CC Unicentro",
+  "operador": "Tesla",
+  "tipo": "Rápida",
+  "direccion": "Cra. 66B #34A-76, CC Unicentro (parqueadero)",
+  "municipio": "Medellín",
+  "lat": 6.24022,
+  "lon": -75.586709,
+  "cargadores": 8,
+  "conectores": [
+   "CCS2"
+  ],
+  "potencia": "325 kW (V4)",
+  "precio_kwh": 1300,
+  "horario": "24 horas",
+  "pago": "App Tesla ($1.300/kWh tarifa dueños Tesla; otros VE vía app Tesla si está habilitado)",
+  "fuente": "https://supercharge.info ; https://www.tesla.com/findus?location=466857 ; https://kallpaenergy.com/estaciones/medellin/unicentro-shopping-mall",
+  "verificado": "2026-09",
+  "precio_nota": "Supercharger V4; Tesla no confirma acceso para otras marcas en este sitio"
+ },
+ {
+  "nombre": "Hotel Poblado Plaza (Split Power)",
+  "operador": "Split Power",
+  "tipo": "Lenta",
+  "direccion": "Cra. 43A (Av. El Poblado) #4 Sur-75",
+  "municipio": "Medellín",
+  "lat": 6.199657,
+  "lon": -75.57375,
+  "cargadores": 2,
+  "conectores": [
+   "Tipo 2"
+  ],
+  "potencia": "8 kW AC",
+  "precio_kwh": 2000,
+  "horario": "24 horas",
+  "pago": "App Split Power",
+  "fuente": "https://kallpaenergy.com/estaciones/medellin/estacion-de-carga-ev-hotel-poblado-plaza",
+  "verificado": "2026-09"
+ },
+ {
+  "nombre": "Erco Outlet de Moda",
+  "operador": "Erco Energía",
+  "tipo": "Semi rápida",
+  "direccion": "Calle 16 #55-129",
+  "municipio": "Medellín",
+  "lat": 6.21928,
+  "lon": -75.583635,
+  "cargadores": 1,
+  "conectores": [
+   "CCS1",
+   "CCS2"
+  ],
+  "potencia": "20 kW DC",
+  "precio_kwh": 1700,
+  "horario": null,
+  "pago": "App Erco / Electropass",
+  "fuente": "https://kallpaenergy.com/estaciones/medellin/outlet-de-moda",
+  "verificado": "2026-09"
+ },
+ {
+  "nombre": "Erco Complex Llanogrande",
+  "operador": "Erco Energía",
+  "tipo": "Semi rápida",
+  "direccion": "Km 8.5 vía Rionegro-Llanogrande, Complex Llanogrande",
+  "municipio": "Rionegro",
+  "lat": 6.125101,
+  "lon": -75.421676,
+  "cargadores": 1,
+  "conectores": [
+   "CCS1",
+   "CCS2"
+  ],
+  "potencia": "20 kW DC",
+  "precio_kwh": 1700,
+  "horario": "Publicado 06:00-10:00 (probable error; confirmar)",
+  "pago": "App Erco / Electropass",
+  "fuente": "https://kallpaenergy.com/estaciones/rionegro/complex-llanogrande ; https://www.electromaps.com/es/puntos-carga/colombia/rionegro/unknown-city-temporary/complex-llanogrande-via-sin-nombre",
+  "verificado": "2026-09"
+ },
+ {
+  "nombre": "EDS Aguacatala Ruta Zeero (Evinka)",
+  "operador": "Evinka Tech",
+  "tipo": "Semi rápida",
+  "direccion": "Carrera 50E #10 (EDS La Aguacatala), El Poblado",
+  "municipio": "Medellín",
+  "lat": 6.1935,
+  "lon": -75.5815,
+  "cargadores": 1,
+  "conectores": [
+   "CCS1",
+   "CCS2"
+  ],
+  "potencia": "20 kW DC (prensa anuncia hasta 50 kW)",
+  "precio_kwh": 1800,
+  "horario": "24 horas (según prensa)",
+  "pago": "App Evinka Connect / Electropass",
+  "fuente": "https://www.electromaps.com/es/puntos-carga/colombia/medellin/medellin/eds-aguacatala-ruta-zeero-carrera-50e ; https://abceconomia.co/2026/04/06/evinka-tech-inaugura-su-primera-electrolinera-en-la-aguacatala/",
+  "verificado": "2026-09"
+ },
+ {
+  "nombre": "Celsia Universidad CES (El Poblado)",
+  "operador": "Celsia",
+  "tipo": "Lenta",
+  "direccion": "Calle 10A #22-04",
+  "municipio": "Medellín",
+  "lat": 6.20908,
+  "lon": -75.553715,
+  "cargadores": 3,
+  "conectores": [
+   "Tipo 1",
+   "Tipo 2",
+   "Toma doméstica"
+  ],
+  "potencia": "11 kW AC",
+  "precio_kwh": null,
+  "horario": null,
+  "pago": "App Celsia",
+  "fuente": "https://kallpaenergy.com/estaciones/medellin/celsia-u-ces",
+  "verificado": "2026-09"
+ },
+ {
+  "nombre": "Velttio Calle de la Buena Mesa",
+  "operador": "Velttio (red pública Envigado)",
+  "tipo": "Lenta",
+  "direccion": "Cra. 45A con Calle 30 Sur",
+  "municipio": "Envigado",
+  "lat": 6.167181,
+  "lon": -75.583021,
+  "cargadores": 1,
+  "conectores": [
+   "Tipo 2"
+  ],
+  "potencia": "7 kW AC",
+  "precio_kwh": 1400,
+  "horario": "24 horas",
+  "pago": "App Velttio",
+  "fuente": "https://kallpaenergy.com/estaciones/medellin/calle-de-la-buena-mesa ; https://www.elcolombiano.com/antioquia/vehiculos-electricos-carga-envigado-medellin-valle-de-aburra-LF37549516",
+  "verificado": "2026-09"
+ },
+ {
+  "nombre": "Velttio Estación MUA (Manuel Uribe Ángel)",
+  "operador": "Velttio (red pública Envigado)",
+  "tipo": "Lenta",
+  "direccion": "Calle 38A Sur con Cra. 44",
+  "municipio": "Envigado",
+  "lat": 6.166327,
+  "lon": -75.5823,
+  "cargadores": 1,
+  "conectores": [
+   "Tipo 2"
+  ],
+  "potencia": "7 kW AC",
+  "precio_kwh": 1400,
+  "horario": "24 horas",
+  "pago": "App Velttio",
+  "fuente": "https://kallpaenergy.com/estaciones/medellin/estacion-mua ; https://www.elcolombiano.com/antioquia/vehiculos-electricos-carga-envigado-medellin-valle-de-aburra-LF37549516",
+  "verificado": "2026-09"
+ },
+ {
+  "nombre": "Velttio Mall Vegas Plaza / Prados de Sabaneta",
+  "operador": "Velttio",
+  "tipo": "Lenta",
+  "direccion": "Cra. 48 (Av. Las Vegas) con Calle 76D Sur #52",
+  "municipio": "Sabaneta",
+  "lat": 6.151228,
+  "lon": -75.615611,
+  "cargadores": 1,
+  "conectores": [
+   "Tipo 2"
+  ],
+  "potencia": "7 kW AC",
+  "precio_kwh": 1400,
+  "horario": null,
+  "pago": "App Velttio",
+  "fuente": "https://kallpaenergy.com/estaciones/sabaneta/mall-vegas-plaza ; https://kallpaenergy.com/estaciones/medellin/prados-de-sabaneta",
+  "verificado": "2026-09"
+ },
+ {
+  "nombre": "Velttio Eco Carga",
+  "operador": "Velttio",
+  "tipo": "Lenta",
+  "direccion": "Cra. 44 #61 Sur-38",
+  "municipio": "Sabaneta",
+  "lat": 6.150934,
+  "lon": -75.615609,
+  "cargadores": 1,
+  "conectores": [
+   "Tipo 2"
+  ],
+  "potencia": "7 kW AC",
+  "precio_kwh": 1400,
+  "horario": null,
+  "pago": "App Velttio",
+  "fuente": "https://kallpaenergy.com/estaciones/medellin/eco-carga",
+  "verificado": "2026-09"
+ },
+ {
+  "nombre": "Velttio Mall Las Delicias",
+  "operador": "Velttio",
+  "tipo": "Lenta",
+  "direccion": "Mall Las Delicias, El Tablazo",
+  "municipio": "Rionegro",
+  "lat": 6.147509,
+  "lon": -75.376809,
+  "cargadores": 1,
+  "conectores": [
+   "Tipo 2"
+  ],
+  "potencia": "7 kW AC",
+  "precio_kwh": 1450,
+  "horario": null,
+  "pago": "App Velttio",
+  "fuente": "https://kallpaenergy.com/estaciones/medellin/mall-las-delicias-rionegro",
+  "verificado": "2026-09"
+ },
+ {
+  "nombre": "EPM Éxito Laureles",
+  "operador": "EPM",
+  "tipo": "Semi rápida",
+  "direccion": "Cra. 81 #37-100",
+  "municipio": "Medellín",
+  "lat": 6.245335,
+  "lon": -75.602042,
+  "cargadores": 2,
+  "conectores": [
+   "Tipo 1",
+   "Tipo 2",
+   "Toma doméstica"
+  ],
+  "potencia": "22 kW AC",
+  "precio_kwh": 948,
+  "horario": null,
+  "pago": "Tarjeta / App EPM",
+  "fuente": "https://kallpaenergy.com/estaciones/medellin/exito-laureles",
+  "verificado": "2026-09"
+ },
+ {
+  "nombre": "Parqueadero Los Pinos (vía Guarne-Aeropuerto)",
+  "operador": "Parqueadero Los Pinos",
+  "tipo": "Lenta",
+  "direccion": "Vía Guarne-Aeropuerto José María Córdova",
+  "municipio": "Rionegro",
+  "lat": 6.17,
+  "lon": -75.43,
+  "cargadores": 1,
+  "conectores": [
+   "Tipo 1",
+   "Tipo 2",
+   "GB/T"
+  ],
+  "potencia": "7 kW",
+  "precio_kwh": 1900,
+  "horario": null,
+  "pago": "Electropass / Electromaps",
+  "fuente": "https://www.electromaps.com/es/puntos-carga/colombia/rionegro/unknown-city-temporary/parqueadero-los-pinos-guarne-aeropuerto-jose-maria-cordova",
+  "verificado": "2026-09"
+ },
+ {
+  "nombre": "Mall El Tranvía",
+  "operador": "Electrical Charge",
+  "tipo": "Lenta",
+  "direccion": "Vía Alcaravanes, Mall El Tranvía",
+  "municipio": "Marinilla",
+  "lat": 6.174444,
+  "lon": -75.34647,
+  "cargadores": 1,
+  "conectores": [
+   "Tipo 1",
+   "Tipo 2"
+  ],
+  "potencia": "8 kW AC",
+  "precio_kwh": 1750,
+  "horario": null,
+  "pago": "App Electrical Charge",
+  "fuente": "https://kallpaenergy.com/estaciones/marinilla/mall-el-tranvia-marinilla",
+  "verificado": "2026-09"
+ },
+ {
+  "nombre": "Hotel Alfahar (El Alfarero)",
+  "operador": "Hotel El Alfarero",
+  "tipo": "Lenta",
+  "direccion": "Calle 45 #31-210",
+  "municipio": "El Carmen de Viboral",
+  "lat": 6.095153,
+  "lon": -75.341498,
+  "cargadores": 2,
+  "conectores": [
+   "Tipo 2"
+  ],
+  "potencia": "AC (kW no publicado)",
+  "precio_kwh": 1633,
+  "horario": "24 horas",
+  "pago": "Pago en el hotel",
+  "fuente": "https://kallpaenergy.com/estaciones/el-carmen-de-viboral/alfahar-hotel-73eb",
+  "verificado": "2026-09"
+ },
+ {
+  "nombre": "Cerámicas El Dorado / Museo Vivo",
+  "operador": "Cerámicas El Dorado",
+  "tipo": "Lenta",
+  "direccion": "Cra. 31 #42-64",
+  "municipio": "El Carmen de Viboral",
+  "lat": 6.092199,
+  "lon": -75.337844,
+  "cargadores": 1,
+  "conectores": [
+   "Tipo 2"
+  ],
+  "potencia": "AC (kW no publicado)",
+  "precio_kwh": 1700,
+  "horario": null,
+  "pago": "Pago en el establecimiento",
+  "fuente": "https://kallpaenergy.com/estaciones/el-carmen-de-viboral/ceramicas-el-dorado-museo-vivo",
+  "verificado": "2026-09"
+ },
+ {
+  "nombre": "Wattia La Perla 1",
+  "operador": "Wattia",
+  "tipo": "Lenta",
+  "direccion": "Calle 30 #33-02",
+  "municipio": "El Carmen de Viboral",
+  "lat": 6.082074,
+  "lon": -75.33676,
+  "cargadores": 1,
+  "conectores": [
+   "Tipo 1",
+   "Tipo 2"
+  ],
+  "potencia": "9 kW AC",
+  "precio_kwh": 1700,
+  "horario": null,
+  "pago": "App Wattia",
+  "fuente": "https://kallpaenergy.com/estaciones/el-carmen-de-viboral/wattia-la-perla-1-el-carmen-de-viboral",
+  "verificado": "2026-09"
  }
 ]

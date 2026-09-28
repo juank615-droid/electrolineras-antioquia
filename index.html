@@ -54,6 +54,7 @@ nav button.on{color:var(--acc);font-weight:600}
 nav button.on i{filter:none;opacity:1}
 .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:8px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
+.etq{font-size:11px;line-height:1.2;padding:2px 5px}
 .chip{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:13px}
 .chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
 .buscar{display:flex;gap:8px;margin-bottom:10px}
@@ -174,6 +175,7 @@ th{color:var(--mute);font-weight:500}
       <button onclick="cercaDeMi()">📍 Cerca</button>
     </div>
     <div class="chips" id="chips"></div>
+    <select id="red" onchange="S.red=this.value;pintarLista();pintarMapa()" style="width:100%;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:14px;margin-bottom:8px"></select>
     <div id="lista"></div>
   </section>
 
@@ -258,7 +260,7 @@ var QUERY = '[out:json][timeout:25];nwr["amenity"="charging_station"](around:' +
 var REFRESCO_MS = 3 * 60 * 1000;
 var CLAVE = 'electrolineras_v1';
 
-var S = {est: [], precios: null, act: {}, filtro: 'todas', pos: null, cargando: false};
+var S = {est: [], precios: null, act: {}, filtro: 'todas', red: '', pos: null, cargando: false};
 var mapa, capa, marcas = {};
 
 function pad(n) { return (n < 10 ? '0' : '') + n; }
@@ -450,7 +452,7 @@ function cargarGuardado() {
 
 /* ---------- pintar ---------- */
 function pintarTodo() {
-  pintarKPIs(); pintarMapa(); pintarChips(); pintarLista(); pintarPrecios(); pintarActualizado(); pintarCerca();
+  pintarKPIs(); pintarMapa(); pintarChips(); pintarRedes(); pintarLista(); pintarPrecios(); pintarActualizado(); pintarCerca();
 }
 function pintarActualizado() {
   var t = S.vivoRaw && S.vivoRaw.sincronizado ? Math.max.apply(null, Object.keys(S.vivoRaw.sincronizado).map(function (k) { return Date.parse(S.vivoRaw.sincronizado[k]) || 0; })) : 0;
@@ -474,24 +476,27 @@ function iniciarMapa() {
   }).addTo(mapa);
   L.control.zoom({position: 'topright'}).addTo(mapa);
   capa = L.layerGroup().addTo(mapa);
+  var z0 = mapa.getZoom();
+  mapa.on('zoomend', function () { var z = mapa.getZoom(); if ((z >= 15) !== (z0 >= 15)) pintarMapa(); z0 = z; });
 }
 function pintarMapa() {
   if (!mapa) return;
   capa.clearLayers(); marcas = {};
   S.est.forEach(function (e) {
+    if (S.red && redDe(e) !== S.red) return;
     var st = estado(e), color = getComputedStyle(document.documentElement).getPropertyValue(st.c.slice(4, -1)).trim();
     var m = L.circleMarker([e.lat, e.lon], {
       radius: /r[aá]pida/i.test(e.tipo) && !/semi/i.test(e.tipo) ? 11 : 8,
       color: '#fff', weight: 2, fillColor: color, fillOpacity: 1
     }).on('click', function () { abrir(e.id); });
-    m.bindTooltip(esc(e.nombre), {direction: 'top', offset: [0, -8]});
+    m.bindTooltip(esc(e.nombre) + '<br><small>' + esc(e.operador) + '</small>', {direction: 'top', offset: [0, -8], permanent: mapa.getZoom() >= 15, className: 'etq'});
     m.addTo(capa); marcas[e.id] = m;
   });
   if (S.pos) L.circleMarker([S.pos.lat, S.pos.lon], {radius: 7, color: '#fff', weight: 3, fillColor: '#2563eb', fillOpacity: 1}).addTo(capa);
 }
 
 var FILTROS = [
-  ['todas', 'Todas'], ['ok', '🟢 Libres'], ['vivo', '📡 En vivo'], ['rapida', '⚡ Rápidas'], ['epm', 'EPM'], ['terpel', 'Terpel Voltex'],
+  ['todas', 'Todas'], ['ok', '🟢 Libres'], ['vivo', '📡 En vivo'], ['rapida', '⚡ Rápidas'], ['epm', 'EPM'], ['terpel', 'Terpel Voltex'], ['tesla', 'Tesla'],
   ['celsia', 'Celsia'], ['mubon', 'Mubon'], ['cc', 'Centros comerciales'], ['otras', 'Otras'], ['falla', 'Con falla']
 ];
 function pintarChips() {
@@ -499,7 +504,16 @@ function pintarChips() {
     return '<button class="chip' + (S.filtro === f[0] ? ' on' : '') + '" onclick="S.filtro=\'' + f[0] + '\';pintarChips();pintarLista()">' + f[1] + '</button>';
   }).join('');
 }
+function redDe(e) { return e.operador.replace(/ \(.*\)$/, ''); }
+function pintarRedes() {
+  var c = {};
+  S.est.forEach(function (e) { var r = redDe(e); c[r] = (c[r] || 0) + 1; });
+  var el = document.getElementById('red');
+  el.innerHTML = '<option value="">Red / operador: todas (' + S.est.length + ')</option>' + Object.keys(c).sort(function (a, b) { return c[b] - c[a] || a.localeCompare(b); })
+    .map(function (r) { return '<option value="' + esc(r) + '"' + (S.red === r ? ' selected' : '') + '>' + esc(r) + ' (' + c[r] + ')</option>'; }).join('');
+}
 function pasaFiltro(e) {
+  if (S.red && redDe(e) !== S.red) return false;
   var k = estado(e).k;
   switch (S.filtro) {
     case 'ok': return k === 'ok';
@@ -507,10 +521,11 @@ function pasaFiltro(e) {
     case 'vivo': return e.fuente === 'VIVO';
     case 'epm': return e.fuente === 'EPM';
     case 'terpel': return /terpel|voltex/i.test(e.operador + e.nombre);
+    case 'tesla': return /tesla/i.test(e.operador);
     case 'celsia': return /celsia/i.test(e.operador);
     case 'mubon': return /mubon/i.test(e.operador);
-    case 'cc': return /\bcc\b|centro comercial|mall|plaza|unicentro|oviedo|tesoro|santaf|mayorca|molinos|arkadia|florida|viva |premium|fabricato|puerta del norte|san nicol|llanogrande|sao paulo|la fe|exito|éxito|carulla/i.test(e.nombre + ' ' + e.operador);
-    case 'otras': return e.fuente !== 'EPM' && !/terpel|voltex|celsia|mubon/i.test(e.operador + e.nombre);
+    case 'cc': return /\bcc\b|centro comercial|mall|plaza|unicentro|oviedo|tesoro|strada|palms|movicentro|city plaza|los molinos|santa ?f[eé]|mall|santaf|mayorca|molinos|arkadia|florida|viva |premium|fabricato|puerta del norte|san nicol|llanogrande|sao paulo|la fe|exito|éxito|carulla/i.test(e.nombre + ' ' + e.operador);
+    case 'otras': return e.fuente !== 'EPM' && !/terpel|voltex|celsia|mubon|tesla/i.test(e.operador + e.nombre);
     case 'falla': return k === 'off' || k === 'parcial';
   }
   return true;
@@ -549,7 +564,8 @@ function abrir(id) {
   var appOp = e.fuente === 'VIVO' ? 'https://electrolineras.co/' : e.fuente === 'EPM' ? 'https://www.epm.com.co/clientesyusuarios/energia/hogar/movilidad-electrica/'
     : /terpel|voltex/i.test(e.operador) ? 'https://www.terpel.com/voltex'
     : /celsia/i.test(e.operador) ? 'https://www.celsia.com/es/movilidad-electrica/'
-    : /enel/i.test(e.operador) ? 'https://www.enelxway.com/co/es' : '';
+    : /enel/i.test(e.operador) ? 'https://www.enelxway.com/co/es'
+    : /tesla/i.test(e.operador) ? 'https://www.tesla.com/es_co/findus' : '';
   var filas = [
     ['Estado', '<span class="badge" style="background:' + st.c + '">' + esc(st.txt) + '</span>'],
     ['Operador', esc(e.operador)],
