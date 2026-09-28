@@ -109,6 +109,23 @@ th{color:var(--mute);font-weight:500}
 .leyenda{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--mute)}
 .leyenda i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}
 #ley-mapa{position:absolute;left:10px;bottom:10px;z-index:500;background:var(--card);border-radius:10px;padding:7px 10px;box-shadow:var(--shadow)}
+#btn-cerca{position:absolute;left:10px;top:10px;z-index:600;border:0;border-radius:999px;background:var(--acc);color:#fff;
+  font-weight:700;font-size:14px;padding:10px 14px;box-shadow:0 3px 12px rgba(0,0,0,.25)}
+#cerca{position:absolute;left:0;right:0;bottom:0;z-index:600;padding:8px 0 10px;display:none;
+  background:linear-gradient(to top,var(--bg) 70%,transparent)}
+#cerca.on{display:block}
+#cerca .tit{display:flex;align-items:center;gap:8px;padding:0 12px 6px;font-size:13px;font-weight:700}
+#cerca .tit label{margin-left:auto;font-weight:500;font-size:12.5px;display:flex;align-items:center;gap:5px;color:var(--mute)}
+#cerca .tit button{border:0;background:none;color:var(--mute);font-size:18px;padding:0 4px}
+.carrusel{display:flex;gap:8px;overflow-x:auto;padding:0 12px 4px;scroll-snap-type:x mandatory;scrollbar-width:none}
+.carrusel::-webkit-scrollbar{display:none}
+.cc{flex:none;width:78%;max-width:300px;scroll-snap-align:start;background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:10px 12px}
+.cc h5{margin:0;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cc .km{font-size:20px;font-weight:800;color:var(--acc)}
+.cc .fila2{display:flex;justify-content:space-between;align-items:center;margin-top:4px;font-size:12.5px;color:var(--mute);gap:8px}
+.cc .ir{display:flex;gap:6px;margin-top:8px}
+.cc .ir a,.cc .ir button{flex:1;text-align:center;text-decoration:none;border:0;border-radius:9px;padding:8px;font-size:13px;font-weight:600;background:var(--chip);color:var(--ink)}
+.cc .ir a{background:var(--acc);color:#fff}
 #toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 12px);transform:translate(-50%,-150%);background:#0f1c2b;color:#fff;
   padding:9px 14px;border-radius:10px;font-size:13px;z-index:2000;transition:transform .25s;max-width:90vw}
 #toast.on{transform:translate(-50%,0)}
@@ -134,6 +151,14 @@ th{color:var(--mute);font-weight:500}
 <main>
   <section class="vista on" id="v-mapa">
     <div id="mapa"></div>
+    <button id="btn-cerca" onclick="ubicar(false)">📍 Cerca de mí</button>
+    <div id="cerca">
+      <div class="tit">🔌 Más cercanas a ti
+        <label><input type="checkbox" id="solo-libres" onchange="pintarCerca()"> Solo libres</label>
+        <button onclick="document.getElementById('cerca').classList.remove('on');document.getElementById('ley-mapa').style.display=''" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="carrusel" id="carrusel"></div>
+    </div>
     <div id="ley-mapa" class="leyenda">
       <span><i style="background:var(--ok)"></i>Operativa</span>
       <span><i style="background:var(--ocup)"></i>Ocupada</span>
@@ -425,7 +450,7 @@ function cargarGuardado() {
 
 /* ---------- pintar ---------- */
 function pintarTodo() {
-  pintarKPIs(); pintarMapa(); pintarChips(); pintarLista(); pintarPrecios(); pintarActualizado();
+  pintarKPIs(); pintarMapa(); pintarChips(); pintarLista(); pintarPrecios(); pintarActualizado(); pintarCerca();
 }
 function pintarActualizado() {
   var t = S.vivoRaw && S.vivoRaw.sincronizado ? Math.max.apply(null, Object.keys(S.vivoRaw.sincronizado).map(function (k) { return Date.parse(S.vivoRaw.sincronizado[k]) || 0; })) : 0;
@@ -679,13 +704,40 @@ function ir(v) {
   document.querySelectorAll('nav button').forEach(function (b) { b.classList.toggle('on', b.dataset.v === v); });
   if (v === 'mapa' && mapa) setTimeout(function () { mapa.invalidateSize(); }, 50);
 }
-function cercaDeMi() {
-  if (!navigator.geolocation) return toast('Tu teléfono no permite ubicación');
-  toast('Buscando tu ubicación…');
+function cercaDeMi() { ubicar(false, true); }
+function ubicar(silencioso, enLista) {
+  if (!navigator.geolocation) { if (!silencioso) toast('Tu teléfono no permite ubicación'); return; }
+  if (!silencioso) toast('Buscando tu ubicación…');
   navigator.geolocation.getCurrentPosition(function (p) {
+    var primera = !S.pos;
     S.pos = {lat: p.coords.latitude, lon: p.coords.longitude};
-    pintarLista(); pintarMapa(); toast('Ordenadas por distancia');
-  }, function () { toast('No se pudo obtener la ubicación'); }, {enableHighAccuracy: true, timeout: 10000});
+    try { localStorage.setItem(CLAVE + '_gps', '1'); } catch (e) {}
+    pintarLista(); pintarMapa(); pintarCerca(true);
+    if (mapa && (primera || !silencioso) && !enLista) mapa.setView([S.pos.lat, S.pos.lon], 13);
+    if (enLista) toast('Ordenadas por distancia');
+  }, function () {
+    if (!silencioso) toast('Activa la ubicación: Ajustes › Privacidad › Localización › Safari › Al usar la app');
+  }, {enableHighAccuracy: true, timeout: 12000, maximumAge: 60000});
+}
+function pintarCerca(abrir) {
+  var box = document.getElementById('cerca');
+  if (!S.pos || !S.est.length) return;
+  var libres = document.getElementById('solo-libres').checked;
+  var l = S.est.map(function (e) { e.km = dist(S.pos.lat, S.pos.lon, e.lat, e.lon); return e; })
+    .filter(function (e) { var k = estado(e).k; return libres ? k === 'ok' : k !== 'off' && k !== 'prox'; })
+    .sort(function (a, b) { return a.km - b.km; }).slice(0, 8);
+  document.getElementById('carrusel').innerHTML = l.length ? l.map(function (e) {
+    var st = estado(e), tf = tarifaDe(e);
+    return '<div class="cc" onclick="abrir(\'' + e.id + '\')">' +
+      '<div class="fila2" style="margin:0"><span class="km">' + e.km.toFixed(1).replace('.', ',') + ' km</span>' +
+      '<span>' + (tf ? '<b style="color:var(--ink)">' + cop(tf) + '</b>/kWh' : 'Sin tarifa') + '</span></div>' +
+      '<h5>' + esc(e.nombre) + '</h5>' +
+      '<div class="fila2"><span>' + esc(comercializador(e)) + (e.tipo ? ' · ' + esc(e.tipo) : '') + '</span></div>' +
+      '<div class="fila2"><span style="color:' + st.c + ';font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">● ' + esc(st.txt) + '</span></div>' +
+      '<div class="ir"><a href="https://www.google.com/maps/dir/?api=1&destination=' + e.lat + ',' + e.lon + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">🧭 Ir</a>' +
+      '<button onclick="event.stopPropagation();mapa.setView([' + e.lat + ',' + e.lon + '],16)">Ver en mapa</button></div></div>';
+  }).join('') : '<div class="cc">No hay estaciones libres cerca en este momento. Quita el filtro "Solo libres".</div>';
+  if (abrir) { box.classList.add('on'); document.getElementById('ley-mapa').style.display = 'none'; }
 }
 
 /* ---------- arranque ---------- */
@@ -694,10 +746,11 @@ iniciarMapa();
 cargarGuardado();
 pintarTodo();
 refrescar(false);
+setTimeout(function () { ubicar(true); }, 800);
 setInterval(function () { if (!document.hidden) refrescar(false); }, REFRESCO_MS);
 setInterval(pintarActualizado, 30000);
 document.addEventListener('visibilitychange', function () {
-  if (!document.hidden && (!S.act.epm || Date.now() - S.act.epm > 60000)) refrescar(false);
+  if (!document.hidden && (!S.act.epm || Date.now() - S.act.epm > 60000)) { refrescar(false); if (S.pos) ubicar(true); }
 });
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
