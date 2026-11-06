@@ -1,7 +1,7 @@
 {
  "fuente": "EPM - Unidad de Recarga Vehicular (URV), carga publica",
- "url": "https://www.epm.com.co/content/dam/epm/clientes-y-usuarios/energia/hogar/movilidad-electrica/tarifas-anos/2026/tarifas-movilidad-electrica-septiembre.pdf",
- "consultado": "2026-11-05T18:45:06Z",
+ "url": "https://www.epm.com.co/content/dam/epm/clientes-y-usuarios/energia/hogar/movilidad-electrica/tarifas-anos/2026/tarifas-movilidad_electrica-noviembre.pdf",
+ "consultado": "2026-11-06T17:57:29Z",
  "unidad": "COP/kWh",
  "historico": {
   "2020-01": {
@@ -327,6 +327,14 @@
   "2026-09": {
    "lenta": 1331.2,
    "rapida": 1729.0
+  },
+  "2026-10": {
+   "lenta": 1329.8,
+   "rapida": 1727.5
+  },
+  "2026-11": {
+   "lenta": 1364.2,
+   "rapida": 1769.3
   }
  }
 }
